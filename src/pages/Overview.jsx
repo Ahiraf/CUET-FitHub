@@ -4,7 +4,8 @@ import Icon from '../Icon';
 import { StatCard, QuickAction, HourBars } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { getOccupancy, toggleCheckIn } from '../api';
+import { useApi } from '../hooks/useApi';
+import api from '../api';
 import { weeklyActivity, equipmentInventory, upcoming, hourlyOccupancy } from '../data';
 
 export default function Overview() {
@@ -12,7 +13,7 @@ export default function Overview() {
   const showToast = useToast();
   const navigate = useNavigate();
   const [selectedDay, setSelectedDay] = useState('Thu');
-  const [occ, setOcc] = useState(() => getOccupancy(user));
+  const { data: occ, setData: setOcc } = useApi(() => api.getOccupancy(), []);
 
   const firstName = (user?.name || '').trim().split(/\s+/)[0] || 'there';
   const greeting = useMemo(() => {
@@ -22,11 +23,15 @@ export default function Overview() {
   const today = useMemo(() => new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }), []);
   const peakHour = useMemo(() => hourlyOccupancy.reduce((a, b) => (b.value > a.value ? b : a)).hour, []);
 
-  const handleCheckIn = () => {
-    if (!occ.checkedIn && occ.full) { showToast('The gym is at capacity — please wait.'); return; }
-    const next = toggleCheckIn(user);
-    setOcc(next);
-    showToast(next.checkedIn ? 'Checked in — enjoy your session!' : 'Checked out. See you next time!');
+  const handleCheckIn = async () => {
+    if (occ && !occ.checkedIn && occ.full) { showToast('The gym is at capacity — please wait.'); return; }
+    try {
+      const next = await (occ?.checkedIn ? api.checkOut() : api.checkIn());
+      setOcc(next);
+      showToast(next.checkedIn ? 'Checked in — enjoy your session!' : 'Checked out. See you next time!');
+    } catch (e) {
+      showToast(e.message);
+    }
   };
 
   return (
@@ -51,23 +56,25 @@ export default function Overview() {
         <article className="panel occupancy-panel">
           <div className="panel-header">
             <div><h2 className="panel-title">Live gym occupancy</h2><p className="panel-subtitle">Real-time capacity for the CUET gym</p></div>
-            <div className={`occupancy-status ${occ.full ? 'full' : ''}`}><span className={`status-dot ${occ.full ? 'red' : ''}`} /><span>{occ.full ? 'Gym full' : 'Open now'}</span></div>
+            {occ && <div className={`occupancy-status ${occ.full ? 'full' : ''}`}><span className={`status-dot ${occ.full ? 'red' : ''}`} /><span>{occ.full ? 'Gym full' : 'Open now'}</span></div>}
           </div>
-          <div className="occupancy-main">
-            <div className="occupancy-ring" style={{ '--ring-deg': `${occ.percent * 3.6}deg` }}>
-              <div className="ring-copy"><strong>{occ.count}</strong><span>of {occ.capacity} students</span></div>
-            </div>
-            <div className="occupancy-copy">
-              <h3>{occ.full ? 'The gym is at capacity' : 'Plenty of room right now'}</h3>
-              <p>The gym is at <strong>{occ.percent}% capacity</strong>. {occ.full ? 'Please wait for it to clear before heading over.' : 'You can check in without waiting.'}</p>
-              <div className="checkin-row">
-                <button className={`btn ${occ.checkedIn ? 'danger' : 'success'}`} disabled={!occ.checkedIn && occ.full} onClick={handleCheckIn} type="button">
-                  <Icon name={occ.checkedIn ? 'logout' : 'check'} size={14} /> {occ.checkedIn ? 'Check out' : 'Check in'}
-                </button>
-                <span className="checkin-hint">{occ.checkedIn ? "You're checked in at the gym." : 'Tap when you arrive at the gym.'}</span>
+          {occ ? (
+            <div className="occupancy-main">
+              <div className="occupancy-ring" style={{ '--ring-deg': `${occ.percent * 3.6}deg` }}>
+                <div className="ring-copy"><strong>{occ.count}</strong><span>of {occ.capacity} students</span></div>
+              </div>
+              <div className="occupancy-copy">
+                <h3>{occ.full ? 'The gym is at capacity' : 'Plenty of room right now'}</h3>
+                <p>The gym is at <strong>{occ.percent}% capacity</strong>. {occ.full ? 'Please wait for it to clear before heading over.' : 'You can check in without waiting.'}</p>
+                <div className="checkin-row">
+                  <button className={`btn ${occ.checkedIn ? 'danger' : 'success'}`} disabled={!occ.checkedIn && occ.full} onClick={handleCheckIn} type="button">
+                    <Icon name={occ.checkedIn ? 'logout' : 'check'} size={14} /> {occ.checkedIn ? 'Check out' : 'Check in'}
+                  </button>
+                  <span className="checkin-hint">{occ.checkedIn ? "You're checked in at the gym." : 'Tap when you arrive at the gym.'}</span>
+                </div>
               </div>
             </div>
-          </div>
+          ) : <div className="empty-state">Loading occupancy…</div>}
         </article>
 
         <article className="panel chart-panel">

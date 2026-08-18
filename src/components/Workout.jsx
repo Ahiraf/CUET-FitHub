@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Workoutchart from './Workoutchart';
 import Progresschart from './Progresschart';
 import Icon from '../Icon';
 import { StatCard } from './ui';
-import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { getAssignedRoutine, toggleRoutineItem } from '../api';
+import { useApi } from '../hooks/useApi';
+import api from '../api';
 
 const recent = [
   { title: 'Upper Body Strength', meta: 'Yesterday', mins: 45 },
@@ -14,18 +14,19 @@ const recent = [
 ];
 
 export default function Workout() {
-  const { user } = useAuth();
   const showToast = useToast();
-  const [routine, setRoutine] = useState(() => getAssignedRoutine(user));
+  const { data: routine, setData: setRoutine } = useApi(() => api.getMyRoutine(), []);
 
-  const done = routine.items.filter((i) => i.done).length;
-  const pct = Math.round((done / routine.items.length) * 100);
+  const items = routine?.items || [];
+  const done = items.filter((i) => i.done).length;
+  const pct = items.length ? Math.round((done / items.length) * 100) : 0;
 
-  const toggle = (name) => {
-    const next = toggleRoutineItem(user, name);
-    setRoutine({ ...next });
-    const item = next.items.find((i) => i.name === name);
-    if (item?.done) showToast(`Nice — ${name} done!`);
+  const toggle = async (item) => {
+    setRoutine({ ...routine, items: items.map((i) => (i.id === item.id ? { ...i, done: !i.done } : i)) });
+    try {
+      await api.toggleRoutineItem(item.id);
+      if (!item.done) showToast(`Nice — ${item.name} done!`);
+    } catch (e) { showToast(e.message); }
   };
 
   return (
@@ -46,18 +47,24 @@ export default function Workout() {
       <section className="content-grid split-wide" style={{ marginTop: 15 }}>
         <article className="panel">
           <div className="panel-header">
-            <div><h2 className="panel-title">Today's routine</h2><p className="panel-subtitle">Assigned by {routine.coach}</p></div>
-            <span className="tag blue">{done}/{routine.items.length} done</span>
+            <div><h2 className="panel-title">Today's routine</h2><p className="panel-subtitle">{routine ? `Assigned by ${routine.coach}` : 'Loading…'}</p></div>
+            {routine && <span className="tag blue">{done}/{items.length} done</span>}
           </div>
-          <div className="progress-track" style={{ marginTop: 16 }}><div className="progress-fill blue" style={{ width: `${pct}%` }} /></div>
-          <div className="list" style={{ marginTop: 16 }}>
-            {routine.items.map((item) => (
-              <div className={`exercise-item ${item.done ? 'done' : ''}`} key={item.name}>
-                <button className="ex-check" onClick={() => toggle(item.name)} type="button" aria-label={`Toggle ${item.name}`}><Icon name="check" size={16} /></button>
-                <div className="ex-main"><strong>{item.name}</strong><span>{item.target}</span></div>
+          {routine ? (
+            <>
+              <div className="progress-track" style={{ marginTop: 16 }}><div className="progress-fill blue" style={{ width: `${pct}%` }} /></div>
+              <div className="list" style={{ marginTop: 16 }}>
+                {items.map((item) => (
+                  <div className={`exercise-item ${item.done ? 'done' : ''}`} key={item.id}>
+                    <button className="ex-check" onClick={() => toggle(item)} type="button" aria-label={`Toggle ${item.name}`}><Icon name="check" size={16} /></button>
+                    <div className="ex-main"><strong>{item.name}</strong><span>{item.target}</span></div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          ) : (
+            <div className="empty-state" style={{ padding: '30px 12px' }}><Icon name="clipboard" size={26} /> No routine assigned yet. Your trainer can assign one.</div>
+          )}
         </article>
 
         <article className="panel" style={{ alignSelf: 'flex-start' }}>

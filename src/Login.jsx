@@ -2,42 +2,29 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Auth.css';
 import { useAuth } from './context/AuthContext';
-import { findAccount, deriveName } from './api';
-
-const roles = [
-  { key: 'student', label: 'Student', hint: 'Train & track' },
-  { key: 'trainer', label: 'Trainer', hint: 'Coach members' },
-  { key: 'admin', label: 'Admin', hint: 'Run the gym' },
-];
 
 export default function Login() {
-  const { login } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('student');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (!email || !password) { setError('Please enter your email and password.'); return; }
     setError('');
-
-    // Reuse a registered account when one exists; otherwise sign in as a
-    // lightweight session with a name derived from the email + chosen role.
-    const existing = findAccount(email);
-    if (existing) {
-      if (existing.password && existing.password !== password) {
-        setError('Incorrect password for this account.');
-        return;
-      }
-      const { password: _pw, ...session } = existing;
-      login(session);
-    } else {
-      login({ name: deriveName(email), email: email.trim(), role });
+    setBusy(true);
+    try {
+      await signIn({ email: email.trim(), password });
+      navigate('/dashboard/overview');
+    } catch (err) {
+      setError(err.message || 'Could not sign in.');
+    } finally {
+      setBusy(false);
     }
-    navigate('/dashboard/overview');
   };
 
   return (
@@ -80,20 +67,9 @@ export default function Login() {
                 </div>
               </label>
 
-              <div className="auth-label">
-                I am signing in as
-                <div className="role-toggle">
-                  {roles.map((r) => (
-                    <button className={`role-option ${role === r.key ? 'active' : ''}`} key={r.key} onClick={() => setRole(r.key)} type="button">
-                      <strong>{r.label}</strong><span>{r.hint}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {error && <p className="auth-error">{error}</p>}
 
-              <button className="auth-submit" type="submit">Log in to dashboard →</button>
+              <button className="auth-submit" type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Log in to dashboard →'}</button>
             </form>
 
             <p className="auth-switch">

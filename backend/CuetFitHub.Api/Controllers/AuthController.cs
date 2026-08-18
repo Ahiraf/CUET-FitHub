@@ -27,7 +27,9 @@ public class AuthController : ControllerBase
             return Conflict(new { message = "An account with this email already exists." });
 
         // Students self-register; trainers are allowed for demo. Admins are seeded only.
-        var role = dto.Role == Roles.Trainer ? Roles.Trainer : Roles.Student;
+        var role = string.Equals(dto.Role, Roles.Trainer, StringComparison.OrdinalIgnoreCase)
+            ? Roles.Trainer
+            : Roles.Student;
 
         var user = new ApplicationUser
         {

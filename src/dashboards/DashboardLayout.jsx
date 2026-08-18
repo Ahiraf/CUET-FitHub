@@ -27,7 +27,7 @@ export default function DashboardLayout() {
 
   const PageComponent = active.component;
   const roleLabel = user.role === 'trainer' ? 'Trainer' : user.role === 'admin' ? 'Admin' : 'Student';
-  const navUser = { ...user, subtitle: `${user.dept ? user.dept + ' · ' : ''}${roleLabel}` };
+  const navUser = { ...user, subtitle: `${user.department ? user.department + ' · ' : ''}${roleLabel}` };
 
   const go = (item) => {
     navigate(`/dashboard/${item.slug}`);

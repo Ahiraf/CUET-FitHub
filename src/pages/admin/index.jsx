@@ -4,10 +4,8 @@ import Icon from '../../Icon';
 import { initials } from '../../Navbar';
 import { StatCard, HourBars } from '../../components/ui';
 import { useToast } from '../../context/ToastContext';
-import {
-  listMembers, setAccountVerified, getOccupancy, getTickets, setTicketStatus,
-  getAnnouncements, addAnnouncement,
-} from '../../api';
+import { useApi } from '../../hooks/useApi';
+import api from '../../api';
 import { equipmentInventory, hourlyOccupancy } from '../../data';
 
 const ticketTone = { Open: 'red', 'In progress': 'orange', Resolved: 'green' };
@@ -16,10 +14,12 @@ const peakHour = hourlyOccupancy.reduce((a, b) => (b.value > a.value ? b : a)).h
 
 export function AdminOverview() {
   const navigate = useNavigate();
-  const members = listMembers();
-  const occ = getOccupancy();
-  const pendingVerif = members.filter((m) => !m.verified).length;
-  const openTickets = getTickets().filter((t) => t.status !== 'Resolved').length;
+  const { data: members } = useApi(() => api.getMembers(), []);
+  const { data: occ } = useApi(() => api.getOccupancy(), []);
+  const { data: tickets } = useApi(() => api.getTickets(), []);
+  const memberList = members || [];
+  const pendingVerif = memberList.filter((m) => !m.verified).length;
+  const openTickets = (tickets || []).filter((t) => t.status !== 'Resolved').length;
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
@@ -30,12 +30,12 @@ export function AdminOverview() {
           <h1>Operations <span>overview</span> 🛠️</h1>
           <p className="welcome-copy">Monitor gym capacity, verify members and keep the facility running.</p>
         </div>
-        <div className={`date-chip`}><Icon name="users" size={15} /> {occ.count}/{occ.capacity} in the gym now</div>
+        {occ && <div className="date-chip"><Icon name="users" size={15} /> {occ.count}/{occ.capacity} in the gym now</div>}
       </section>
 
       <section className="grid-4">
-        <StatCard accent="blue" detail="Registered accounts" icon="users" label="Total members" value={String(members.length)} />
-        <StatCard accent={occ.full ? 'red' : 'green'} detail={occ.full ? 'At capacity' : 'Below the 50 limit'} icon="activity" label="In gym now" value={`${occ.count}/${occ.capacity}`} />
+        <StatCard accent="blue" detail="Registered accounts" icon="users" label="Total members" value={String(memberList.length)} />
+        <StatCard accent={occ?.full ? 'red' : 'green'} detail={occ?.full ? 'At capacity' : 'Below the 50 limit'} icon="activity" label="In gym now" value={occ ? `${occ.count}/${occ.capacity}` : '—'} />
         <StatCard accent="orange" detail="Awaiting approval" icon="shield" label="Pending verifications" value={String(pendingVerif)} />
         <StatCard accent="violet" detail="Needing attention" icon="wrench" label="Open tickets" value={String(openTickets)} />
       </section>
@@ -47,16 +47,16 @@ export function AdminOverview() {
         </article>
 
         <article className="panel">
-          <div className="panel-header"><div><h2 className="panel-title">Needs verification</h2><p className="panel-subtitle">New student accounts</p></div><button className="panel-link" onClick={() => navigate('/dashboard/members')} type="button">Review <Icon name="arrowRight" size={13} /></button></div>
+          <div className="panel-header"><div><h2 className="panel-title">Needs verification</h2><p className="panel-subtitle">New accounts</p></div><button className="panel-link" onClick={() => navigate('/dashboard/members')} type="button">Review <Icon name="arrowRight" size={13} /></button></div>
           <div className="list" style={{ marginTop: 14 }}>
-            {members.filter((m) => !m.verified).slice(0, 4).map((m) => (
-              <div className="list-row" key={m.email}>
+            {memberList.filter((m) => !m.verified).slice(0, 4).map((m) => (
+              <div className="list-row" key={m.id}>
                 <span className="row-icon">{initials(m.name)}</span>
-                <div className="row-main"><strong>{m.name}</strong><span>{m.studentId} · {m.dept || m.role}</span></div>
+                <div className="row-main"><strong>{m.name}</strong><span>{m.studentId} · {m.department || m.role}</span></div>
                 <span className="tag orange">Pending</span>
               </div>
             ))}
-            {pendingVerif === 0 && <div className="empty-state"><Icon name="check" size={24} /> All members verified.</div>}
+            {members && pendingVerif === 0 && <div className="empty-state"><Icon name="check" size={24} /> All members verified.</div>}
           </div>
         </article>
       </section>
@@ -66,17 +66,20 @@ export function AdminOverview() {
 
 export function AdminMembers() {
   const showToast = useToast();
-  const [members, setMembers] = useState(() => listMembers());
+  const { data: members, setData: setMembers } = useApi(() => api.getMembers(), []);
   const [filter, setFilter] = useState('All');
+  const list = members || [];
 
-  const verify = (email, name, verified) => {
-    setAccountVerified(email, verified);
-    setMembers(listMembers());
-    showToast(verified ? `${name} verified.` : `${name} set to pending.`);
+  const verify = async (id, name, verified) => {
+    try {
+      const updated = await api.verifyMember(id, verified);
+      setMembers(list.map((m) => (m.id === id ? updated : m)));
+      showToast(verified ? `${name} verified.` : `${name} set to pending.`);
+    } catch (e) { showToast(e.message); }
   };
 
   const filters = ['All', 'Pending', 'Students', 'Trainers'];
-  const visible = members.filter((m) => (
+  const visible = list.filter((m) => (
     filter === 'All' ? true
       : filter === 'Pending' ? !m.verified
         : filter === 'Students' ? m.role === 'student'
@@ -95,24 +98,24 @@ export function AdminMembers() {
       </div>
       <div className="list">
         {visible.map((m) => (
-          <div className="list-row" key={m.email}>
+          <div className="list-row" key={m.id}>
             <span className="row-icon">{initials(m.name)}</span>
             <div className="row-main"><strong>{m.name}</strong><span>{m.email} · {m.studentId}</span></div>
             <span className={`tag ${roleTone[m.role] || 'grey'}`}>{m.role}</span>
             <span className={`tag ${m.verified ? 'green' : 'orange'}`}>{m.verified ? 'Verified' : 'Pending'}</span>
-            <button className={`btn sm ${m.verified ? 'ghost' : ''}`} onClick={() => verify(m.email, m.name, !m.verified)} type="button">
+            <button className={`btn sm ${m.verified ? 'ghost' : ''}`} onClick={() => verify(m.id, m.name, !m.verified)} type="button">
               {m.verified ? 'Revoke' : 'Verify'}
             </button>
           </div>
         ))}
-        {visible.length === 0 && <div className="empty-state"><Icon name="users" size={24} /> No members in this view.</div>}
+        {members && visible.length === 0 && <div className="empty-state"><Icon name="users" size={24} /> No members in this view.</div>}
       </div>
     </div>
   );
 }
 
 export function Attendance() {
-  const occ = getOccupancy();
+  const { data: occ } = useApi(() => api.getOccupancy(), []);
   return (
     <div className="dashboard-container">
       <header className="page-head">
@@ -125,18 +128,20 @@ export function Attendance() {
         <article className="panel occupancy-panel">
           <div className="panel-header">
             <div><h2 className="panel-title">Live occupancy</h2><p className="panel-subtitle">Today's headcount</p></div>
-            <div className={`occupancy-status ${occ.full ? 'full' : ''}`}><span className={`status-dot ${occ.full ? 'red' : ''}`} /><span>{occ.full ? 'At capacity' : 'Below limit'}</span></div>
+            {occ && <div className={`occupancy-status ${occ.full ? 'full' : ''}`}><span className={`status-dot ${occ.full ? 'red' : ''}`} /><span>{occ.full ? 'At capacity' : 'Below limit'}</span></div>}
           </div>
-          <div className="occupancy-main">
-            <div className="occupancy-ring" style={{ '--ring-deg': `${occ.percent * 3.6}deg` }}>
-              <div className="ring-copy"><strong>{occ.count}</strong><span>of {occ.capacity} students</span></div>
+          {occ ? (
+            <div className="occupancy-main">
+              <div className="occupancy-ring" style={{ '--ring-deg': `${occ.percent * 3.6}deg` }}>
+                <div className="ring-copy"><strong>{occ.count}</strong><span>of {occ.capacity} students</span></div>
+              </div>
+              <div className="occupancy-copy">
+                <h3>{occ.percent}% full</h3>
+                <p>The gym {occ.full ? 'has reached' : 'is under'} its <strong>{occ.capacity}-student</strong> daily cap. The public status shows <strong>{occ.full ? 'FULL' : 'OPEN'}</strong>.</p>
+                <div className="occupancy-note"><Icon name="clock" size={14} /> Busiest between 5:00 - 7:00 PM</div>
+              </div>
             </div>
-            <div className="occupancy-copy">
-              <h3>{occ.percent}% full</h3>
-              <p>The gym {occ.full ? 'has reached' : 'is under'} its <strong>{occ.capacity}-student</strong> daily cap. The public status shows <strong>{occ.full ? 'FULL' : 'OPEN'}</strong>.</p>
-              <div className="occupancy-note"><Icon name="clock" size={14} /> Busiest between 5:00 - 7:00 PM</div>
-            </div>
-          </div>
+          ) : <div className="empty-state">Loading…</div>}
         </article>
 
         <article className="panel">
@@ -150,9 +155,16 @@ export function Attendance() {
 
 export function Equipment() {
   const showToast = useToast();
-  const [tickets, setTickets] = useState(() => getTickets());
+  const { data: tickets, setData: setTickets } = useApi(() => api.getTickets(), []);
+  const list = tickets || [];
 
-  const change = (id, status) => { setTickets(setTicketStatus(id, status)); showToast(`Ticket marked ${status}.`); };
+  const change = async (id, status) => {
+    try {
+      const updated = await api.setTicketStatus(id, status);
+      setTickets(list.map((t) => (t.id === id ? updated : t)));
+      showToast(`Ticket marked ${status}.`);
+    } catch (e) { showToast(e.message); }
+  };
 
   return (
     <div className="dashboard-container">
@@ -180,18 +192,18 @@ export function Equipment() {
         <h3 className="section-title">Maintenance tickets</h3>
         <p className="section-sub">Update status as issues get fixed.</p>
         <div className="list">
-          {tickets.map((t) => (
+          {list.map((t) => (
             <div className="list-row" key={t.id}>
               <span className="row-icon"><Icon name="wrench" size={17} /></span>
               <div className="row-main"><strong>{t.item}</strong><span>{t.issue}</span></div>
-              <div className="row-meta"><span>by {t.by} · {t.date}</span></div>
+              <div className="row-meta"><span>by {t.reportedBy} · {t.date}</span></div>
               <span className={`tag ${ticketTone[t.status]}`}>{t.status}</span>
               <select className="select" style={{ width: 140 }} value={t.status} onChange={(e) => change(t.id, e.target.value)}>
                 <option>Open</option><option>In progress</option><option>Resolved</option>
               </select>
             </div>
           ))}
-          {tickets.length === 0 && <div className="empty-state"><Icon name="check" size={24} /> No maintenance tickets.</div>}
+          {tickets && list.length === 0 && <div className="empty-state"><Icon name="check" size={24} /> No maintenance tickets.</div>}
         </div>
       </section>
     </div>
@@ -200,18 +212,21 @@ export function Equipment() {
 
 export function Announcements() {
   const showToast = useToast();
-  const [items, setItems] = useState(() => getAnnouncements());
+  const { data: items, setData: setItems } = useApi(() => api.getAnnouncements(), []);
   const [form, setForm] = useState({ title: '', body: '', type: 'Notice' });
+  const list = items || [];
+  const typeTone = { Maintenance: 'orange', Event: 'violet', Notice: 'blue' };
 
-  const post = (e) => {
+  const post = async (e) => {
     e.preventDefault();
     if (!form.title.trim() || !form.body.trim()) { showToast('Add a title and message.'); return; }
-    setItems(addAnnouncement(form));
-    setForm({ title: '', body: '', type: 'Notice' });
-    showToast('Announcement posted.');
+    try {
+      const created = await api.addAnnouncement(form);
+      setItems([created, ...list]);
+      setForm({ title: '', body: '', type: 'Notice' });
+      showToast('Announcement posted.');
+    } catch (err) { showToast(err.message); }
   };
-
-  const typeTone = { Maintenance: 'orange', Event: 'violet', Notice: 'blue' };
 
   return (
     <div className="dashboard-container">
@@ -224,8 +239,8 @@ export function Announcements() {
       <section className="content-grid split-wide">
         <article className="panel">
           <h2 className="panel-title">Posted announcements</h2>
-          <p className="panel-subtitle">{items.length} live</p>
-          {items.map((a) => (
+          <p className="panel-subtitle">{list.length} live</p>
+          {list.map((a) => (
             <div className="announce" key={a.id}>
               <div className="an-head"><span className={`tag ${typeTone[a.type] || 'grey'}`}>{a.type}</span><h4>{a.title}</h4><span className="an-date">{a.date}</span></div>
               <p>{a.body}</p>

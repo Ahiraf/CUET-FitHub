@@ -103,11 +103,11 @@ export const leaderboard = [
 ];
 
 export const trainerMembers = [
-  { name: 'Arif Siam', dept: 'CSE 22', plan: 'Upper/Lower Split', adherence: 86, status: 'On track' },
-  { name: 'Rifat Karim', dept: 'EEE 22', plan: 'Push Pull Legs', adherence: 72, status: 'On track' },
-  { name: 'Sabbir Ahmed', dept: 'CSE 22', plan: 'Full Body 3x', adherence: 54, status: 'Needs nudge' },
-  { name: 'Mahin Rahman', dept: 'ME 21', plan: 'Strength Foundations', adherence: 91, status: 'On track' },
-  { name: 'Imran Kabir', dept: 'CE 23', plan: 'Fat Loss Circuit', adherence: 38, status: 'At risk' },
+  { name: 'Arif Siam', email: 'arif.siam@cuet.ac.bd', dept: 'CSE 22', plan: 'Upper/Lower Split', adherence: 86, status: 'On track' },
+  { name: 'Rifat Karim', email: 'rifat.karim@cuet.ac.bd', dept: 'EEE 22', plan: 'Push Pull Legs', adherence: 72, status: 'On track' },
+  { name: 'Sabbir Ahmed', email: 'sabbir.ahmed@cuet.ac.bd', dept: 'CSE 22', plan: 'Full Body 3x', adherence: 54, status: 'Needs nudge' },
+  { name: 'Mahin Rahman', email: 'mahin.rahman@cuet.ac.bd', dept: 'ME 21', plan: 'Strength Foundations', adherence: 91, status: 'On track' },
+  { name: 'Imran Kabir', email: 'imran.kabir@cuet.ac.bd', dept: 'CE 23', plan: 'Fat Loss Circuit', adherence: 38, status: 'At risk' },
 ];
 
 export const seedBookingRequests = [

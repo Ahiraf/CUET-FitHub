@@ -78,16 +78,20 @@ npm run preview    # preview the production build
 
 ## 5. Connecting the frontend to the backend
 
-The API base URL is read from `VITE_API_URL` (see `.env.example`):
+The frontend auto-selects its data source at build time:
+
+- **`VITE_API_URL` set** → it calls the real backend over HTTP (JWT sent as
+  `Authorization: Bearer`), via `src/api/http.js`.
+- **`VITE_API_URL` unset** → it uses the in-browser localStorage mock
+  (`src/api/mock.js`) so the app still runs standalone.
 
 ```bash
 cp .env.example .env      # then set VITE_API_URL=http://localhost:8080
+npm run dev               # now talks to the live API
 ```
 
-To use the real API instead of the localStorage mock, replace the
-implementations in `src/api/index.js` with `fetch` calls to the backend and send
-the JWT (from `/api/auth/login`) as an `Authorization: Bearer <token>` header.
-The endpoint shapes already line up with the frontend concepts:
+`src/api/client.js` handles the base URL, token, and requests; `src/api/index.js`
+picks http vs mock. Both implement the same contract, which maps to the backend:
 
 | Frontend concern | Endpoint(s) |
 |------------------|-------------|

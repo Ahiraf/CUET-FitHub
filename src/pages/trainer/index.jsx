@@ -5,7 +5,8 @@ import { initials } from '../../Navbar';
 import { StatCard } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { getBookingRequests, setBookingStatus, assignRoutine } from '../../api';
+import { useApi } from '../../hooks/useApi';
+import api from '../../api';
 import { trainerMembers, gymClasses, exerciseLibrary, sampleRoutine } from '../../data';
 
 const statusTone = { 'On track': 'green', 'Needs nudge': 'orange', 'At risk': 'red' };
@@ -14,9 +15,10 @@ export function TrainerOverview() {
   const { user } = useAuth();
   const showToast = useToast();
   const navigate = useNavigate();
+  const { data: bookings } = useApi(() => api.getAllBookings(), []);
+  const pending = (bookings || []).filter((b) => b.status === 'Pending');
   const firstName = (user?.name || '').trim().split(/\s+/)[0] || 'Coach';
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  const pending = getBookingRequests().filter((b) => b.status === 'Pending');
 
   return (
     <div className="dashboard-container">
@@ -63,7 +65,7 @@ export function TrainerOverview() {
             {pending.map((b) => (
               <div className="upcoming-item" key={b.id}>
                 <div className="event-date blue"><strong><Icon name="user" size={13} /></strong></div>
-                <div className="event-copy"><strong>{b.name}</strong><span>{b.goal} · {b.slot}</span></div>
+                <div className="event-copy"><strong>{b.memberName}</strong><span>{b.goal} · {b.slot}</span></div>
                 <span className="event-type blue">1-on-1</span>
               </div>
             ))}
@@ -106,7 +108,7 @@ export function Routines() {
   const { user } = useAuth();
   const showToast = useToast();
   const [routine, setRoutine] = useState(sampleRoutine);
-  const [assignee, setAssignee] = useState(trainerMembers[0].name);
+  const [assignee, setAssignee] = useState(trainerMembers[0]);
 
   const remove = (name) => setRoutine(routine.filter((r) => r.name !== name));
   const add = (name) => {
@@ -114,9 +116,11 @@ export function Routines() {
     setRoutine([...routine, { name, target: '3 × 10' }]);
     showToast(`${name} added to routine.`);
   };
-  const assign = () => {
-    assignRoutine(assignee, routine, user?.name || 'Coach');
-    showToast(`Routine assigned to ${assignee}.`);
+  const assign = async () => {
+    try {
+      await api.assignRoutine({ memberEmail: assignee.email, coach: user?.name || 'Coach', items: routine });
+      showToast(`Routine assigned to ${assignee.name}.`);
+    } catch (e) { showToast(e.message); }
   };
 
   return (
@@ -144,8 +148,8 @@ export function Routines() {
           <div className="form-grid" style={{ gridTemplateColumns: '1fr auto', alignItems: 'end', marginTop: 18 }}>
             <div className="field">
               <label htmlFor="assignee">Assign to</label>
-              <select id="assignee" className="select" value={assignee} onChange={(e) => setAssignee(e.target.value)}>
-                {trainerMembers.map((m) => <option key={m.name}>{m.name}</option>)}
+              <select id="assignee" className="select" value={assignee.email} onChange={(e) => setAssignee(trainerMembers.find((m) => m.email === e.target.value))}>
+                {trainerMembers.map((m) => <option key={m.email} value={m.email}>{m.name}</option>)}
               </select>
             </div>
             <button className="btn" disabled={routine.length === 0} onClick={assign} type="button"><Icon name="check" size={14} /> Assign routine</button>
@@ -208,11 +212,17 @@ export function TrainerClasses() {
 
 export function Bookings() {
   const showToast = useToast();
-  const [rows, setRows] = useState(() => getBookingRequests());
-  const set = (id, name, status) => {
-    setRows(setBookingStatus(id, status));
-    showToast(`${status === 'Confirmed' ? 'Confirmed' : 'Declined'} session with ${name}.`);
+  const { data: bookings, setData: setBookings } = useApi(() => api.getAllBookings(), []);
+  const rows = bookings || [];
+
+  const set = async (id, name, status) => {
+    try {
+      const updated = await api.setBookingStatus(id, status);
+      setBookings(rows.map((b) => (b.id === id ? updated : b)));
+      showToast(`${status === 'Confirmed' ? 'Confirmed' : 'Declined'} session with ${name}.`);
+    } catch (e) { showToast(e.message); }
   };
+
   return (
     <div className="dashboard-container">
       <header className="page-head">
@@ -223,13 +233,13 @@ export function Bookings() {
       <div className="list">
         {rows.map((b) => (
           <div className="list-row" key={b.id}>
-            <span className="row-icon">{initials(b.name)}</span>
-            <div className="row-main"><strong>{b.name}</strong><span>{b.dept} · {b.goal}</span></div>
+            <span className="row-icon">{initials(b.memberName)}</span>
+            <div className="row-main"><strong>{b.memberName}</strong><span>{b.department} · {b.goal}</span></div>
             <div className="row-meta"><strong>{b.slot}</strong><span>requested</span></div>
             {b.status === 'Pending' ? (
               <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn sm ghost" onClick={() => set(b.id, b.name, 'Declined')} type="button">Decline</button>
-                <button className="btn sm" onClick={() => set(b.id, b.name, 'Confirmed')} type="button">Confirm</button>
+                <button className="btn sm ghost" onClick={() => set(b.id, b.memberName, 'Declined')} type="button">Decline</button>
+                <button className="btn sm" onClick={() => set(b.id, b.memberName, 'Confirmed')} type="button">Confirm</button>
               </div>
             ) : (
               <span className={`tag ${b.status === 'Confirmed' ? 'green' : 'red'}`}>{b.status}</span>

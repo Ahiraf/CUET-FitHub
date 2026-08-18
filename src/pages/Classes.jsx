@@ -1,30 +1,27 @@
 import React, { useState } from 'react';
 import Icon from '../Icon';
-import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { getSignups, setSignups } from '../api';
-import { gymClasses } from '../data';
+import { useApi } from '../hooks/useApi';
+import api from '../api';
 
 const filters = ['All', 'Yoga', 'Cardio', 'Strength', 'Self-defense'];
 
 export default function Classes() {
-  const { user } = useAuth();
   const showToast = useToast();
   const [filter, setFilter] = useState('All');
-  const [joined, setJoined] = useState(() => getSignups(user));
+  const { data: classes, setData: setClasses } = useApi(() => api.getClasses(), []);
 
-  const isJoined = (id) => joined.includes(id);
+  const list = classes || [];
 
-  const toggle = (cls) => {
-    if (!isJoined(cls.id) && cls.filled >= cls.spots) { showToast(`${cls.title} is full right now.`); return; }
-    const wasIn = isJoined(cls.id);
-    const next = wasIn ? joined.filter((c) => c !== cls.id) : [...joined, cls.id];
-    setJoined(next);
-    setSignups(user, next);
-    showToast(wasIn ? `Left ${cls.title}.` : `You're signed up for ${cls.title}!`);
+  const toggle = async (cls) => {
+    try {
+      const updated = await api.toggleEnroll(cls.id);
+      setClasses(list.map((c) => (c.id === cls.id ? updated : c)));
+      showToast(updated.enrolled ? `You're signed up for ${cls.title}!` : `Left ${cls.title}.`);
+    } catch (e) { showToast(e.message); }
   };
 
-  const visible = gymClasses.filter((c) => filter === 'All' || c.type === filter);
+  const visible = list.filter((c) => filter === 'All' || c.type === filter);
 
   return (
     <div className="dashboard-container">
@@ -40,10 +37,9 @@ export default function Classes() {
 
       <div className="card-grid">
         {visible.map((cls) => {
-          const enrolledExtra = isJoined(cls.id) ? 1 : 0;
-          const spotsLeft = cls.spots - cls.filled - enrolledExtra;
-          const full = spotsLeft <= 0 && !isJoined(cls.id);
-          const pct = Math.min(100, Math.round(((cls.filled + enrolledExtra) / cls.spots) * 100));
+          const spotsLeft = cls.spots - cls.filled;
+          const full = spotsLeft <= 0 && !cls.enrolled;
+          const pct = Math.min(100, Math.round((cls.filled / cls.spots) * 100));
           return (
             <article className="info-card" key={cls.id}>
               <div className="ic-head">
@@ -54,17 +50,18 @@ export default function Classes() {
               <p className="ic-body">Led by <strong style={{ color: '#4a5c86' }}>{cls.coach}</strong></p>
               <div>
                 <div className="progress-track"><div className={`progress-fill ${full ? 'red' : 'blue'}`} style={{ width: `${pct}%` }} /></div>
-                <div style={{ color: '#93a0b6', fontSize: 10, marginTop: 6 }}>{full ? 'Class full' : `${spotsLeft} spot${spotsLeft === 1 ? '' : 's'} left`} · {cls.spots} capacity</div>
+                <div style={{ color: '#93a0b6', fontSize: 10, marginTop: 6 }}>{full ? 'Class full' : `${Math.max(0, spotsLeft)} spot${spotsLeft === 1 ? '' : 's'} left`} · {cls.spots} capacity</div>
               </div>
               <div className="ic-foot">
-                {isJoined(cls.id) ? <span className="tag green">Enrolled</span> : <span style={{ color: '#9aa4b4', fontSize: 10 }}>Not enrolled</span>}
-                <button className={`btn sm ${isJoined(cls.id) ? 'ghost' : ''}`} disabled={full} onClick={() => toggle(cls)} type="button">
-                  {isJoined(cls.id) ? 'Cancel' : full ? 'Full' : 'Sign up'}
+                {cls.enrolled ? <span className="tag green">Enrolled</span> : <span style={{ color: '#9aa4b4', fontSize: 10 }}>Not enrolled</span>}
+                <button className={`btn sm ${cls.enrolled ? 'ghost' : ''}`} disabled={full} onClick={() => toggle(cls)} type="button">
+                  {cls.enrolled ? 'Cancel' : full ? 'Full' : 'Sign up'}
                 </button>
               </div>
             </article>
           );
         })}
+        {list.length === 0 && <div className="empty-state"><Icon name="calendar" size={26} /> Loading classes…</div>}
       </div>
     </div>
   );

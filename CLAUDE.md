@@ -68,9 +68,12 @@ role-based `[Authorize]` (Student/Trainer/Admin). Config via env vars
 (`ConnectionStrings__Default`, `Jwt__Key`, `Cors__Origins__0`). Run it with
 `docker compose up --build` (Postgres + API) or `dotnet run`. Swagger at
 `/swagger`. See **DEPLOYMENT.md** for local + cloud (Render/Azure) instructions.
-The frontend still ships the localStorage mock (`src/api/`) by default; the REST
-endpoints already mirror those concepts — swap `src/api` for `fetch` calls +
-`VITE_API_URL` to go live.
+The frontend is wired to the backend: `src/api/` auto-selects `http.js` (real
+API, JWT bearer) when `VITE_API_URL` is set, or `mock.js` (localStorage) when
+not — same async contract either way. `client.js` handles base URL + token;
+`AuthContext` does async sign-in/up; pages load via the `useApi` hook. So the
+data layer is async now — call `api.getX()` (await) and guard for `null` while
+loading; don't read from localStorage in components.
 
 **What actually exists in this repo today:** frontend only.
 - **React 19** + **Vite 8** (ESM) + **react-router-dom v6**. Requires Node >= 20.19.0.

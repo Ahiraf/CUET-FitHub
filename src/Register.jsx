@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Auth.css';
 import { useAuth } from './context/AuthContext';
-import { upsertAccount } from './api';
 
 const roles = [
   { key: 'student', label: 'Student', hint: 'Train & track' },
@@ -10,25 +9,30 @@ const roles = [
 ];
 
 export default function Register() {
-  const { login } = useAuth();
+  const { signUp } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', studentId: '', email: '', password: '', confirmPassword: '' });
   const [role, setRole] = useState('student');
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
 
   const updateField = (event) => setForm({ ...form, [event.target.name]: event.target.value });
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (Object.values(form).some((value) => !value.trim())) { setError('Please complete all fields.'); return; }
     if (form.password.length < 6) { setError('Your password must contain at least 6 characters.'); return; }
     if (form.password !== form.confirmPassword) { setError('Passwords do not match.'); return; }
     setError('');
-
-    const user = { name: form.name.trim(), studentId: form.studentId.trim(), email: form.email.trim(), role };
-    upsertAccount({ ...user, password: form.password, verified: false });
-    login(user);
-    navigate('/dashboard/overview');
+    setBusy(true);
+    try {
+      await signUp({ fullName: form.name.trim(), studentId: form.studentId.trim(), email: form.email.trim(), password: form.password, role });
+      navigate('/dashboard/overview');
+    } catch (err) {
+      setError(err.message || 'Could not create your account.');
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -58,24 +62,19 @@ export default function Register() {
             <p className="auth-subtitle">Your fitness journey at CUET starts here.</p>
 
             <form className="auth-form" onSubmit={handleSubmit}>
-              <label className="auth-label">
-                Full name
+              <label className="auth-label">Full name
                 <input className="auth-input" name="name" placeholder="Your full name" value={form.name} onChange={updateField} />
               </label>
-              <label className="auth-label">
-                CUET student ID
+              <label className="auth-label">CUET student ID
                 <input className="auth-input" name="studentId" placeholder="e.g. 2204xxx" value={form.studentId} onChange={updateField} />
               </label>
-              <label className="auth-label">
-                CUET email address
+              <label className="auth-label">CUET email address
                 <input className="auth-input" type="email" name="email" placeholder="name@cuet.ac.bd" value={form.email} onChange={updateField} />
               </label>
-              <label className="auth-label">
-                Password
+              <label className="auth-label">Password
                 <input className="auth-input" type="password" name="password" placeholder="At least 6 characters" value={form.password} onChange={updateField} />
               </label>
-              <label className="auth-label">
-                Confirm password
+              <label className="auth-label">Confirm password
                 <input className="auth-input" type="password" name="confirmPassword" placeholder="Repeat your password" value={form.confirmPassword} onChange={updateField} />
               </label>
 
@@ -92,7 +91,7 @@ export default function Register() {
 
               {error && <p className="auth-error">{error}</p>}
 
-              <button className="auth-submit" type="submit">Create FitHub account →</button>
+              <button className="auth-submit" type="submit" disabled={busy}>{busy ? 'Creating…' : 'Create FitHub account →'}</button>
             </form>
 
             <p className="auth-switch">

@@ -1,28 +1,26 @@
 import React, { useState } from 'react';
 import Icon from '../Icon';
-import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { getTickets, createTicket } from '../api';
+import { useApi } from '../hooks/useApi';
+import api from '../api';
 import { equipmentInventory } from '../data';
 
 const statusTone = { Open: 'red', 'In progress': 'orange', Resolved: 'green' };
 
 export default function Facilities() {
-  const { user } = useAuth();
   const showToast = useToast();
-  const [tickets, setTickets] = useState(() => getTickets());
+  const { data: tickets, setData: setTickets } = useApi(() => api.getTickets(), []);
   const [form, setForm] = useState({ item: equipmentInventory[0].name, issue: '' });
 
-  // Show this user's own reports first (plus seeded ones for context).
-  const myName = user?.name;
-
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     if (!form.issue.trim()) { showToast('Please describe the issue.'); return; }
-    const next = createTicket({ item: form.item, issue: form.issue.trim(), by: myName || 'A student' });
-    setTickets(next);
-    setForm({ ...form, issue: '' });
-    showToast('Report submitted — thanks for flagging it.');
+    try {
+      const created = await api.createTicket({ item: form.item, issue: form.issue.trim() });
+      setTickets([created, ...(tickets || [])]);
+      setForm({ ...form, issue: '' });
+      showToast('Report submitted — thanks for flagging it.');
+    } catch (err) { showToast(err.message); }
   };
 
   return (
@@ -71,15 +69,15 @@ export default function Facilities() {
         <h3 className="section-title">Maintenance tickets</h3>
         <p className="section-sub">Reported issues and their current status.</p>
         <div className="list">
-          {tickets.map((t) => (
+          {(tickets || []).map((t) => (
             <div className="list-row" key={t.id}>
               <span className="row-icon"><Icon name="wrench" size={17} /></span>
               <div className="row-main"><strong>{t.item}</strong><span>{t.issue}</span></div>
-              <div className="row-meta"><span>by {t.by} · {t.date}</span></div>
+              <div className="row-meta"><span>by {t.reportedBy} · {t.date}</span></div>
               <span className={`tag ${statusTone[t.status] || 'grey'}`}>{t.status}</span>
             </div>
           ))}
-          {tickets.length === 0 && <div className="empty-state"><Icon name="check" size={24} /> No open issues. Everything's working!</div>}
+          {tickets && tickets.length === 0 && <div className="empty-state"><Icon name="check" size={24} /> No open issues. Everything's working!</div>}
         </div>
       </section>
     </div>

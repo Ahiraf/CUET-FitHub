@@ -1,37 +1,43 @@
 import React, { useMemo, useState } from 'react';
 import Icon from '../Icon';
-import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { getPlan, setPlan as savePlan } from '../api';
-import { exerciseLibrary, muscleGroups } from '../data';
+import { useApi } from '../hooks/useApi';
+import api from '../api';
+import { muscleGroups } from '../data';
 
 export default function Exercises() {
-  const { user } = useAuth();
   const showToast = useToast();
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('All');
-  const [plan, setPlan] = useState(() => getPlan(user));
+  const { data: exercises } = useApi(() => api.getExercises(), []);
+  const { data: plan, setData: setPlan } = useApi(() => api.getPlan(), []);
+
+  const list = exercises || [];
+  const planList = plan || [];
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return exerciseLibrary.filter((ex) => {
+    return list.filter((ex) => {
       const matchesGroup = group === 'All' || ex.muscle === group;
       const matchesQuery = !q || ex.name.toLowerCase().includes(q) || ex.muscle.toLowerCase().includes(q);
       return matchesGroup && matchesQuery;
     });
-  }, [query, group]);
+  }, [list, query, group]);
 
-  const inPlan = (name) => plan.includes(name);
+  const inPlan = (name) => planList.includes(name);
 
-  const togglePlan = (name) => {
+  const togglePlan = async (name) => {
     const wasIn = inPlan(name);
-    const next = wasIn ? plan.filter((n) => n !== name) : [...plan, name];
+    const next = wasIn ? planList.filter((n) => n !== name) : [...planList, name];
     setPlan(next);
-    savePlan(user, next);
-    showToast(wasIn ? `Removed ${name} from your plan.` : `Added ${name} to your next workout.`);
+    try {
+      const saved = await api.setPlan(next);
+      setPlan(saved);
+      showToast(wasIn ? `Removed ${name} from your plan.` : `Added ${name} to your next workout.`);
+    } catch (e) { showToast(e.message); setPlan(planList); }
   };
 
-  const clearPlan = () => { setPlan([]); savePlan(user, []); showToast('Plan cleared.'); };
+  const clearPlan = async () => { setPlan([]); await api.setPlan([]); showToast('Plan cleared.'); };
 
   return (
     <div className="dashboard-container">
@@ -62,7 +68,7 @@ export default function Exercises() {
 
           <div className="list">
             {filtered.map((ex) => (
-              <div className="list-row" key={ex.name}>
+              <div className="list-row" key={ex.id ?? ex.name}>
                 <span className="row-icon"><Icon name="dumbbell" size={18} /></span>
                 <div className="row-main"><strong>{ex.name}</strong><span>{ex.muscle} · {ex.equipment}</span></div>
                 <span className={`tag ${ex.difficulty === 'Advanced' ? 'red' : ex.difficulty === 'Intermediate' ? 'orange' : 'green'}`}>{ex.difficulty}</span>
@@ -71,21 +77,21 @@ export default function Exercises() {
                 </button>
               </div>
             ))}
-            {filtered.length === 0 && <div className="empty-state"><Icon name="search" size={26} /> No exercises match your search.</div>}
+            {filtered.length === 0 && <div className="empty-state"><Icon name="search" size={26} /> {exercises ? 'No exercises match your search.' : 'Loading…'}</div>}
           </div>
         </article>
 
         <article className="panel" style={{ alignSelf: 'flex-start' }}>
           <div className="panel-header">
-            <div><h2 className="panel-title">Next workout plan</h2><p className="panel-subtitle">{plan.length} exercise{plan.length === 1 ? '' : 's'} queued</p></div>
-            {plan.length > 0 && <button className="panel-link" onClick={clearPlan} type="button">Clear</button>}
+            <div><h2 className="panel-title">Next workout plan</h2><p className="panel-subtitle">{planList.length} exercise{planList.length === 1 ? '' : 's'} queued</p></div>
+            {planList.length > 0 && <button className="panel-link" onClick={clearPlan} type="button">Clear</button>}
           </div>
 
-          {plan.length === 0 ? (
+          {planList.length === 0 ? (
             <div className="empty-state" style={{ padding: '30px 12px' }}><Icon name="clipboard" size={26} /> Add exercises from the catalog to plan your next session.</div>
           ) : (
             <div className="list" style={{ marginTop: 16 }}>
-              {plan.map((name, i) => (
+              {planList.map((name, i) => (
                 <div className="exercise-item" key={name}>
                   <span className="row-icon">{i + 1}</span>
                   <div className="ex-main"><strong>{name}</strong><span>Planned</span></div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './Auth.css';
+import { loadJSON, saveJSON } from './store';
 
 export default function Register({ onRegister, onOpenLogin, onBack }) {
   const [form, setForm] = useState({
@@ -9,6 +10,7 @@ export default function Register({ onRegister, onOpenLogin, onBack }) {
     password: '',
     confirmPassword: '',
   });
+  const [role, setRole] = useState('student');
   const [error, setError] = useState('');
 
   const updateField = (event) => {
@@ -34,7 +36,20 @@ export default function Register({ onRegister, onOpenLogin, onBack }) {
     }
 
     setError('');
-    onRegister();
+
+    const user = {
+      name: form.name.trim(),
+      studentId: form.studentId.trim(),
+      email: form.email.trim(),
+      role,
+    };
+
+    // Persist the account so the user can log back in later.
+    const accounts = loadJSON('accounts', {});
+    accounts[user.email.toLowerCase()] = { ...user, password: form.password };
+    saveJSON('accounts', accounts);
+
+    onRegister(user);
   };
 
   return (
@@ -93,6 +108,20 @@ export default function Register({ onRegister, onOpenLogin, onBack }) {
                 Confirm password
                 <input className="auth-input" type="password" name="confirmPassword" placeholder="Repeat your password" value={form.confirmPassword} onChange={updateField} />
               </label>
+
+              <div className="auth-label">
+                Account type
+                <div className="role-toggle">
+                  <button className={`role-option ${role === 'student' ? 'active' : ''}`} onClick={() => setRole('student')} type="button">
+                    <strong>Student</strong>
+                    <span>Train & track</span>
+                  </button>
+                  <button className={`role-option ${role === 'trainer' ? 'active' : ''}`} onClick={() => setRole('trainer')} type="button">
+                    <strong>Trainer</strong>
+                    <span>Coach members</span>
+                  </button>
+                </div>
+              </div>
 
               {error && <p className="auth-error">{error}</p>}
 

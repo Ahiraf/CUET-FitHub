@@ -251,6 +251,43 @@
   cursor: pointer;
 }
 
+.role-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.role-option {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: #fbfcfe;
+  color: #344057;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.role-option strong {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.role-option span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.role-option.active {
+  border-color: var(--blue);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(82, 113, 238, 0.12);
+}
+
 .auth-error {
   margin: -3px 0 0;
   padding: 10px 12px;

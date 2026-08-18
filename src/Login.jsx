@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import './Auth.css';
+import { loadJSON, deriveName } from './store';
 
 export default function Login({ onLogin, onOpenRegister, onBack }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('student');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
@@ -16,7 +18,22 @@ export default function Login({ onLogin, onOpenRegister, onBack }) {
     }
 
     setError('');
-    onLogin();
+
+    // Reuse a registered account when one exists; otherwise sign in as a
+    // lightweight session with a name derived from the email.
+    const accounts = loadJSON('accounts', {});
+    const existing = accounts[email.trim().toLowerCase()];
+
+    if (existing) {
+      if (existing.password && existing.password !== password) {
+        setError('Incorrect password for this account.');
+        return;
+      }
+      onLogin({ ...existing, password: undefined });
+      return;
+    }
+
+    onLogin({ name: deriveName(email), email: email.trim(), role });
   };
 
   return (
@@ -77,6 +94,20 @@ export default function Login({ onLogin, onOpenRegister, onBack }) {
                   </button>
                 </div>
               </label>
+
+              <div className="auth-label">
+                I am signing in as
+                <div className="role-toggle">
+                  <button className={`role-option ${role === 'student' ? 'active' : ''}`} onClick={() => setRole('student')} type="button">
+                    <strong>Student</strong>
+                    <span>Train & track</span>
+                  </button>
+                  <button className={`role-option ${role === 'trainer' ? 'active' : ''}`} onClick={() => setRole('trainer')} type="button">
+                    <strong>Trainer</strong>
+                    <span>Coach members</span>
+                  </button>
+                </div>
+              </div>
 
               {error && <p className="auth-error">{error}</p>}
 

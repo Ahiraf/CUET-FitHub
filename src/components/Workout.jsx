@@ -1,241 +1,84 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Workoutchart from './Workoutchart';
 import Progresschart from './Progresschart';
+import Icon from '../Icon';
+import { StatCard } from './ui';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { getAssignedRoutine, toggleRoutineItem } from '../api';
+
+const recent = [
+  { title: 'Upper Body Strength', meta: 'Yesterday', mins: 45 },
+  { title: 'Lower Body + Core', meta: 'Mon', mins: 55 },
+  { title: 'Functional Fitness', meta: 'Sat', mins: 40 },
+];
 
 export default function Workout() {
+  const { user } = useAuth();
+  const showToast = useToast();
+  const [routine, setRoutine] = useState(() => getAssignedRoutine(user));
+
+  const done = routine.items.filter((i) => i.done).length;
+  const pct = Math.round((done / routine.items.length) * 100);
+
+  const toggle = (name) => {
+    const next = toggleRoutineItem(user, name);
+    setRoutine({ ...next });
+    const item = next.items.find((i) => i.name === name);
+    if (item?.done) showToast(`Nice — ${name} done!`);
+  };
+
   return (
-    <div>
-      <div
-        style={{
-          maxWidth: '1390px',
-          margin: '0 auto',
-        }}
-      >
-        {/* Header */}
-        <div style={{ marginBottom: '25px' }}>
-          <p
-            style={{
-              color: '#7c89a0',
-              fontSize: '12px',
-              fontWeight: '700',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              margin: 0,
-            }}
-          >
-            Fitness Dashboard
-          </p>
+    <div className="dashboard-container">
+      <header className="page-head">
+        <p className="eyebrow">Fitness dashboard</p>
+        <h1>My Workout</h1>
+        <p className="page-sub">Follow your assigned routine, check off exercises, and track how your training is trending.</p>
+      </header>
 
-          <h1
-            style={{
-              color: '#182338',
-              fontSize: '30px',
-              margin: '8px 0',
-            }}
-          >
-            My Workout
-          </h1>
+      <section className="grid-4" style={{ marginTop: 22 }}>
+        <StatCard accent="blue" detail="+2 from last week" icon="activity" label="Workouts completed" trend="12%" value="08" />
+        <StatCard accent="orange" detail="Keep going!" icon="fire" label="Current streak" value="12 days" />
+        <StatCard accent="violet" detail="+8% this week" icon="clock" label="Active time" value="06h 40m" />
+        <StatCard accent="green" detail="New record" icon="target" label="Personal best" value="92 kg" />
+      </section>
 
-          <p
-            style={{
-              color: '#8994a6',
-              fontSize: '13px',
-              margin: 0,
-            }}
-          >
-            Track your workouts and monitor your fitness progress.
-          </p>
-        </div>
-
-        {/* Statistics */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '15px',
-            marginBottom: '15px',
-          }}
-        >
-          <div
-            style={{
-              background: '#ffffff',
-              border: '1px solid #e8edf5',
-              borderRadius: '12px',
-              padding: '20px',
-            }}
-          >
-            <p style={{ color: '#7c879a', fontSize: '11px' }}>
-              Workouts Completed
-            </p>
-
-            <h2 style={{ color: '#202c43', margin: 0 }}>
-              08
-            </h2>
-
-            <small style={{ color: '#3aa77b' }}>
-              +2 from last week
-            </small>
+      <section className="content-grid split-wide" style={{ marginTop: 15 }}>
+        <article className="panel">
+          <div className="panel-header">
+            <div><h2 className="panel-title">Today's routine</h2><p className="panel-subtitle">Assigned by {routine.coach}</p></div>
+            <span className="tag blue">{done}/{routine.items.length} done</span>
           </div>
-
-          <div
-            style={{
-              background: '#ffffff',
-              border: '1px solid #e8edf5',
-              borderRadius: '12px',
-              padding: '20px',
-            }}
-          >
-            <p style={{ color: '#7c879a', fontSize: '11px' }}>
-              Current Streak
-            </p>
-
-            <h2 style={{ color: '#202c43', margin: 0 }}>
-              12 days
-            </h2>
-
-            <small style={{ color: '#3aa77b' }}>
-              Keep going!
-            </small>
+          <div className="progress-track" style={{ marginTop: 16 }}><div className="progress-fill blue" style={{ width: `${pct}%` }} /></div>
+          <div className="list" style={{ marginTop: 16 }}>
+            {routine.items.map((item) => (
+              <div className={`exercise-item ${item.done ? 'done' : ''}`} key={item.name}>
+                <button className="ex-check" onClick={() => toggle(item.name)} type="button" aria-label={`Toggle ${item.name}`}><Icon name="check" size={16} /></button>
+                <div className="ex-main"><strong>{item.name}</strong><span>{item.target}</span></div>
+              </div>
+            ))}
           </div>
+        </article>
 
-          <div
-            style={{
-              background: '#ffffff',
-              border: '1px solid #e8edf5',
-              borderRadius: '12px',
-              padding: '20px',
-            }}
-          >
-            <p style={{ color: '#7c879a', fontSize: '11px' }}>
-              Active Time
-            </p>
-
-            <h2 style={{ color: '#202c43', margin: 0 }}>
-              06h 40m
-            </h2>
-
-            <small style={{ color: '#3aa77b' }}>
-              +8% this week
-            </small>
+        <article className="panel" style={{ alignSelf: 'flex-start' }}>
+          <h2 className="panel-title">Recent workouts</h2>
+          <p className="panel-subtitle">Your last few sessions</p>
+          <div className="list" style={{ marginTop: 16 }}>
+            {recent.map((r) => (
+              <div className="list-row" key={r.title}>
+                <span className="row-icon"><Icon name="dumbbell" size={17} /></span>
+                <div className="row-main"><strong>{r.title}</strong><span>{r.meta}</span></div>
+                <div className="row-meta"><strong>{r.mins} min</strong></div>
+              </div>
+            ))}
           </div>
+        </article>
+      </section>
 
-          <div
-            style={{
-              background: '#ffffff',
-              border: '1px solid #e8edf5',
-              borderRadius: '12px',
-              padding: '20px',
-            }}
-          >
-            <p style={{ color: '#7c879a', fontSize: '11px' }}>
-              Personal Best
-            </p>
-
-            <h2 style={{ color: '#202c43', margin: 0 }}>
-              92 kg
-            </h2>
-
-            <small style={{ color: '#3aa77b' }}>
-              New record
-            </small>
-          </div>
-        </div>
-
-        {/* Charts */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '15px',
-          }}
-        >
-          <Workoutchart />
-          <Progresschart />
-        </div>
-
-        {/* Workout List */}
-        <div
-          style={{
-            background: '#ffffff',
-            border: '1px solid #e8edf5',
-            borderRadius: '12px',
-            padding: '22px',
-            marginTop: '15px',
-          }}
-        >
-          <h2
-            style={{
-              color: '#253149',
-              fontSize: '18px',
-              marginTop: 0,
-            }}
-          >
-            Recent Workouts
-          </h2>
-
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                padding: '14px',
-                background: '#f6f8fc',
-                borderRadius: '8px',
-              }}
-            >
-              <span>
-                <strong>Upper Body Strength</strong>
-              </span>
-
-              <span style={{ color: '#778196' }}>
-                45 min
-              </span>
-            </div>
-
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                padding: '14px',
-                background: '#f6f8fc',
-                borderRadius: '8px',
-              }}
-            >
-              <span>
-                <strong>Lower Body + Core</strong>
-              </span>
-
-              <span style={{ color: '#778196' }}>
-                55 min
-              </span>
-            </div>
-
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                padding: '14px',
-                background: '#f6f8fc',
-                borderRadius: '8px',
-              }}
-            >
-              <span>
-                <strong>Functional Fitness</strong>
-              </span>
-
-              <span style={{ color: '#778196' }}>
-                40 min
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <section className="grid-2 page-section">
+        <Workoutchart />
+        <Progresschart />
+      </section>
     </div>
   );
 }

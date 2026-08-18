@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import Icon from '../Icon';
 import { initials } from '../Navbar';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { upsertAccount } from '../api';
 
-export default function Settings({ user, onUpdateUser, showToast }) {
+export default function Settings() {
+  const { user, updateUser } = useAuth();
+  const showToast = useToast();
   const [form, setForm] = useState({
     name: user?.name || '',
     studentId: user?.studentId || '',
@@ -10,19 +15,19 @@ export default function Settings({ user, onUpdateUser, showToast }) {
     dept: user?.dept || '',
     goal: user?.goal || 'Build strength',
   });
-  const [prefs, setPrefs] = useState({
-    occupancyAlerts: true,
-    classReminders: true,
-    weeklyDigest: false,
-  });
+  const [prefs, setPrefs] = useState({ occupancyAlerts: true, classReminders: true, weeklyDigest: false });
 
   const update = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const save = (e) => {
     e.preventDefault();
-    onUpdateUser?.({ ...user, ...form });
-    showToast?.('Profile updated.');
+    const next = { ...user, ...form };
+    updateUser(next);
+    upsertAccount(next);
+    showToast('Profile updated.');
   };
+
+  const roleLabel = user?.role === 'trainer' ? 'Trainer' : user?.role === 'admin' ? 'Admin' : 'Student';
 
   return (
     <div className="dashboard-container">
@@ -32,7 +37,7 @@ export default function Settings({ user, onUpdateUser, showToast }) {
         <p className="page-sub">Manage your FitHub profile and notification preferences.</p>
       </header>
 
-      <section className="content-grid" style={{ gridTemplateColumns: 'minmax(0, 1.4fr) minmax(280px, .6fr)' }}>
+      <section className="content-grid split-wide">
         <article className="panel">
           <h2 className="panel-title">Profile</h2>
           <p className="panel-subtitle">This information appears across your dashboard.</p>
@@ -45,11 +50,7 @@ export default function Settings({ user, onUpdateUser, showToast }) {
               <div className="field" style={{ gridColumn: '1 / -1' }}>
                 <label htmlFor="s-goal">Primary goal</label>
                 <select id="s-goal" className="select" name="goal" value={form.goal} onChange={update}>
-                  <option>Build strength</option>
-                  <option>Lose weight</option>
-                  <option>Improve endurance</option>
-                  <option>Stay consistent</option>
-                  <option>General fitness</option>
+                  <option>Build strength</option><option>Lose weight</option><option>Improve endurance</option><option>Stay consistent</option><option>General fitness</option>
                 </select>
               </div>
             </div>
@@ -61,7 +62,7 @@ export default function Settings({ user, onUpdateUser, showToast }) {
           <article className="panel" style={{ textAlign: 'center' }}>
             <div className="avatar" style={{ height: 64, width: 64, fontSize: 20, margin: '4px auto 12px' }}>{initials(form.name)}</div>
             <h2 className="panel-title" style={{ textAlign: 'center' }}>{form.name || 'Your name'}</h2>
-            <p className="panel-subtitle" style={{ textAlign: 'center' }}>{form.dept || 'CUET student'} · {user?.role === 'trainer' ? 'Trainer' : 'Student'}</p>
+            <p className="panel-subtitle" style={{ textAlign: 'center' }}>{form.dept || 'CUET'} · {roleLabel}</p>
           </article>
 
           <article className="panel">
@@ -74,7 +75,7 @@ export default function Settings({ user, onUpdateUser, showToast }) {
                 ['weeklyDigest', 'Weekly digest', 'A summary of your progress'],
               ].map(([k, title, desc]) => (
                 <label key={k} style={{ alignItems: 'center', cursor: 'pointer', display: 'flex', gap: 12, padding: '10px 2px' }}>
-                  <input checked={prefs[k]} onChange={() => { setPrefs({ ...prefs, [k]: !prefs[k] }); showToast?.('Preference updated.'); }} type="checkbox" style={{ accentColor: '#4968e8', height: 16, width: 16 }} />
+                  <input checked={prefs[k]} onChange={() => { setPrefs({ ...prefs, [k]: !prefs[k] }); showToast('Preference updated.'); }} type="checkbox" style={{ accentColor: '#4968e8', height: 16, width: 16 }} />
                   <span style={{ flex: 1 }}>
                     <strong style={{ color: '#2c3852', display: 'block', fontSize: 12 }}>{title}</strong>
                     <span style={{ color: '#93a0b6', fontSize: 10 }}>{desc}</span>

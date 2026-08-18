@@ -1,8 +1,47 @@
-// Seed content for the CUET FitHub frontend. Static demo data; interactive
-// state (logged workouts, class sign-ups, bookings) is persisted per-user in
-// localStorage by the pages that use it.
+// Seed content for the CUET FitHub frontend. Static demo data; mutable state
+// (occupancy, plans, sign-ups, tickets, announcements…) lives in localStorage
+// and is accessed through src/api.
 
 export const GYM_CAPACITY = 50;
+export const OTHERS_PRESENT = 37; // students already checked in (besides you)
+
+export const weeklyActivity = [
+  { day: 'Mon', value: 58 },
+  { day: 'Tue', value: 76 },
+  { day: 'Wed', value: 46 },
+  { day: 'Thu', value: 88 },
+  { day: 'Fri', value: 63 },
+  { day: 'Sat', value: 35 },
+  { day: 'Sun', value: 12 },
+];
+
+// Average occupancy by hour (used for the heatmap + peak-hour analytics).
+export const hourlyOccupancy = [
+  { hour: '6a', value: 14 },
+  { hour: '8a', value: 22 },
+  { hour: '10a', value: 18 },
+  { hour: '12p', value: 27 },
+  { hour: '2p', value: 20 },
+  { hour: '4p', value: 34 },
+  { hour: '6p', value: 48 },
+  { hour: '8p', value: 41 },
+  { hour: '10p', value: 16 },
+];
+
+export const equipmentInventory = [
+  { name: 'Power racks', available: 3, total: 4, tone: 'green' },
+  { name: 'Treadmills', available: 6, total: 8, tone: 'green' },
+  { name: 'Cable machines', available: 1, total: 3, tone: 'orange' },
+  { name: 'Bench press', available: 0, total: 2, tone: 'red' },
+  { name: 'Dumbbell sets', available: 5, total: 6, tone: 'green' },
+  { name: 'Rowing machines', available: 2, total: 3, tone: 'orange' },
+];
+
+export const upcoming = [
+  { date: '18', month: 'JUN', title: 'Upper body strength', meta: 'Today · 6:30 PM', type: 'Workout', color: 'violet' },
+  { date: '20', month: 'JUN', title: 'Functional fitness', meta: 'Friday · 5:00 PM', type: 'Class', color: 'blue' },
+  { date: '22', month: 'JUN', title: 'Lower body + core', meta: 'Sunday · 7:00 AM', type: 'Workout', color: 'orange' },
+];
 
 export const exerciseLibrary = [
   { name: 'Barbell Bench Press', muscle: 'Chest', equipment: 'Bench press', difficulty: 'Intermediate' },
@@ -71,13 +110,13 @@ export const trainerMembers = [
   { name: 'Imran Kabir', dept: 'CE 23', plan: 'Fat Loss Circuit', adherence: 38, status: 'At risk' },
 ];
 
-export const bookingRequests = [
-  { name: 'Arif Siam', dept: 'CSE 22', goal: 'Bench press form check', slot: 'Thu 6:30 PM', status: 'Pending' },
-  { name: 'Sabbir Ahmed', dept: 'CSE 22', goal: 'Program review', slot: 'Fri 5:00 PM', status: 'Pending' },
-  { name: 'Imran Kabir', dept: 'CE 23', goal: 'Fat loss consult', slot: 'Sat 4:00 PM', status: 'Confirmed' },
+export const seedBookingRequests = [
+  { id: 'br1', name: 'Arif Siam', dept: 'CSE 22', goal: 'Bench press form check', slot: 'Thu 6:30 PM', status: 'Pending' },
+  { id: 'br2', name: 'Sabbir Ahmed', dept: 'CSE 22', goal: 'Program review', slot: 'Fri 5:00 PM', status: 'Pending' },
+  { id: 'br3', name: 'Imran Kabir', dept: 'CE 23', goal: 'Fat loss consult', slot: 'Sat 4:00 PM', status: 'Confirmed' },
 ];
 
-// A small default routine trainers can assign / students can follow.
+// A default routine trainers assign / students follow.
 export const sampleRoutine = [
   { name: 'Barbell Bench Press', target: '4 × 6' },
   { name: 'Incline Dumbbell Press', target: '3 × 10' },
@@ -85,4 +124,42 @@ export const sampleRoutine = [
   { name: 'Seated Cable Row', target: '3 × 12' },
   { name: 'Overhead Press', target: '3 × 8' },
   { name: 'Plank', target: '3 × 45s' },
+];
+
+// ---- Community ----
+export const seedAnnouncements = [
+  { id: 'a1', type: 'Maintenance', title: 'Cable machine #2 under repair', body: 'The second cable machine will be out of service until Thursday. Sorry for the inconvenience.', date: 'Aug 16' },
+  { id: 'a2', type: 'Event', title: 'Inter-department lifting meet', body: 'Sign up for the CUET strength challenge on August 30. Represent your department!', date: 'Aug 14' },
+  { id: 'a3', type: 'Notice', title: 'Extended evening hours', body: 'The gym now stays open until 10:30 PM during exam week.', date: 'Aug 12' },
+];
+
+export const buddies = [
+  { id: 'b1', name: 'Rifat Karim', dept: 'EEE 22', goal: 'Strength', times: 'Evenings', color: '#4f6ae0' },
+  { id: 'b2', name: 'Mahin Rahman', dept: 'ME 21', goal: 'Powerlifting', times: 'Mornings', color: '#8a6bd4' },
+  { id: 'b3', name: 'Sabbir Ahmed', dept: 'CSE 22', goal: 'General fitness', times: 'Afternoons', color: '#e0913f' },
+  { id: 'b4', name: 'Nabila Haque', dept: 'Arch 22', goal: 'Weight loss', times: 'Evenings', color: '#35a279' },
+  { id: 'b5', name: 'Imran Kabir', dept: 'CE 23', goal: 'Cardio & endurance', times: 'Mornings', color: '#d4699a' },
+];
+
+export const dietTips = [
+  { en: 'Have a protein source with every meal — eggs, dal, chicken or fish — to support muscle recovery.', bn: 'প্রতিটি খাবারে প্রোটিন রাখুন — ডিম, ডাল, মুরগি বা মাছ — যা পেশি পুনর্গঠনে সাহায্য করে।' },
+  { en: 'Drink water before, during and after your workout. Aim for 2.5–3 litres a day.', bn: 'ব্যায়ামের আগে, চলাকালীন ও পরে পানি পান করুন। দিনে ২.৫–৩ লিটার লক্ষ্য রাখুন।' },
+  { en: 'From the hall canteen, pick rice with dal, vegetables and a boiled egg over fried snacks.', bn: 'হল ক্যান্টিনে ভাজাপোড়ার বদলে ভাত, ডাল, সবজি ও সেদ্ধ ডিম বেছে নিন।' },
+  { en: 'Eat a banana or some dates 30 minutes before training for quick energy.', bn: 'দ্রুত শক্তির জন্য ব্যায়ামের ৩০ মিনিট আগে একটি কলা বা কয়েকটি খেজুর খান।' },
+  { en: 'Do not skip breakfast on training days — it fuels your session and prevents fatigue.', bn: 'ব্যায়ামের দিনে সকালের নাশতা বাদ দেবেন না — এটি আপনাকে শক্তি দেয় ও ক্লান্তি রোধ করে।' },
+];
+
+export const seedTickets = [
+  { id: 'tk1', item: 'Bench press', issue: 'Left safety catch is loose and wobbles under load.', by: 'Arif Siam', status: 'Open', date: 'Aug 15' },
+  { id: 'tk2', item: 'Treadmill #3', issue: 'Belt slips when running above 10 km/h.', by: 'Rifat Karim', status: 'In progress', date: 'Aug 13' },
+];
+
+// Demo accounts so the admin panel has members to verify on first run.
+export const seedAccounts = [
+  { name: 'Arif Siam', studentId: '2204077', email: 'arif.siam@cuet.ac.bd', dept: 'CSE 22', role: 'student', password: 'demo123', verified: true },
+  { name: 'Rifat Karim', studentId: '2208031', email: 'rifat.karim@cuet.ac.bd', dept: 'EEE 22', role: 'student', password: 'demo123', verified: true },
+  { name: 'Nabila Haque', studentId: '2201044', email: 'nabila.haque@cuet.ac.bd', dept: 'Arch 22', role: 'student', password: 'demo123', verified: false },
+  { name: 'Imran Kabir', studentId: '2203099', email: 'imran.kabir@cuet.ac.bd', dept: 'CE 23', role: 'student', password: 'demo123', verified: false },
+  { name: 'Tanvir Ahmed', studentId: 'TR-1002', email: 'tanvir.ahmed@cuet.ac.bd', dept: 'Trainer', role: 'trainer', password: 'demo123', verified: true },
+  { name: 'Gym Admin', studentId: 'ADM-01', email: 'admin@cuet.ac.bd', dept: 'Operations', role: 'admin', password: 'admin123', verified: true },
 ];

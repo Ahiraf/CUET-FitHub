@@ -1,31 +1,16 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import Icon from './Icon';
 
-const iconPaths = {
-  activity: 'M3 12h4l2-7 4 14 2-7h6',
-  arrow: 'M5 12h13m-5-5 5 5-5 5',
-  calendar: 'M7 3v3m10-3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z',
-  chart: 'M5 20V10m7 10V4m7 16v-7',
-  check: 'm5 12 4 4L19 6',
-  chevron: 'm6 9 6 6 6-6',
-  dumbbell: 'M6 8v8m12-8v8M3 10v4m18-4v4M6 12h12',
-  menu: 'M4 6h16M4 12h16M4 18h16',
-  users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7-3a4 4 0 0 1 0 7.7M22 21v-2a4 4 0 0 0-3-3.9',
-};
-
-function Icon({ name, size = 18, strokeWidth = 1.8 }) {
-  return (
-    <svg aria-hidden="true" fill="none" height={size} viewBox="0 0 24 24" width={size} xmlns="http://www.w3.org/2000/svg">
-      <path d={iconPaths[name]} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={strokeWidth} />
-    </svg>
-  );
-}
 const features = [
   { icon: 'activity', title: 'Know before you go', text: 'See live occupancy and equipment availability before you head to the gym.', tone: 'blue' },
   { icon: 'chart', title: 'Progress that motivates', text: 'Log workouts, follow routines, and see your strength and consistency grow.', tone: 'violet' },
   { icon: 'users', title: 'Train together', text: 'Discover classes, book trainers, and stay connected with the CUET fitness community.', tone: 'orange' },
 ];
 
-export default function LandingPage({ onOpenDashboard }) {
+export default function LandingPage() {
+  const navigate = useNavigate();
+  const onOpenDashboard = () => navigate('/login');
   const scrollToFeatures = () => document.getElementById('landing-features')?.scrollIntoView({ behavior: 'smooth' });
 
   return (

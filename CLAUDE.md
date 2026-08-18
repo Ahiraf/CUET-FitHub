@@ -63,53 +63,58 @@ detailed stack table is the authoritative one: ASP.NET Core + PostgreSQL +
 React.)
 
 **What actually exists in this repo today:** frontend only.
-- **React 19** + **Vite 8** (ESM, `"type": "module"`).
-- No backend, no database, no routing library, no chart library — data is
-  seeded in `src/data.js` and view switching is done with `useState` in
-  `src/main.jsx` and the dashboards. Charts are hand-built with divs/SVG.
-- **Session & roles:** `main.jsx` holds the logged-in `user` and routes to the
-  **student** or **trainer** dashboard by `user.role`. Session and accounts are
-  persisted in `localStorage` (see `src/store.js`); there is no real auth —
-  login derives a name from the email or reuses a registered account.
-- Requires **Node >= 20.19.0**.
+- **React 19** + **Vite 8** (ESM) + **react-router-dom v6**. Requires Node >= 20.19.0.
+- No backend/database. All data access goes through **`src/api/`** — a mock layer
+  over `localStorage` + `src/data.js` seed content. Swap the api implementation
+  for HTTP when the backend lands; components never touch storage directly.
+- **Auth is frontend-only:** `AuthContext` holds the session (localStorage);
+  login reuses a registered account or derives a name from the email. Three
+  roles — **student**, **trainer**, **admin** — each get their own dashboard.
+- Charts are hand-built with divs/SVG (no chart lib). Styling is one shared CSS
+  file, `src/styles/dashboard.css`, imported once by the layout.
 
 ## Project structure
 
 ```
 index.html            Vite entry
 src/
-  main.jsx            App root; session state + role-based routing
-  store.js            localStorage helpers (session, accounts, per-user state)
-  data.js             Seed data (exercises, classes, trainers, progress, etc.)
-  Icon.jsx            Shared inline-SVG icon set for the dashboard pages
-  dashboardStyles.js  DASHBOARD_CSS — shared chrome + page styles (.fithub-app)
-  LandingPage.jsx     Marketing landing page (own inline <style>)
-  Login.jsx           Login page + role selector (Auth.css)
-  Register.jsx        Registration page + role selector (Auth.css)
-  Auth.css            Shared styles for auth pages
-  Navbar.jsx          Top bar; shows the real user + Log out (exports initials())
-  Sidebar.jsx         Left nav; configurable navItems for student vs trainer
-  StudentDashboard.jsx  Student shell + Overview; routes to the student pages
-  TrainerDashboard.jsx  Trainer shell + Overview + Members/Routines/Classes/Bookings
-  index.css           Global styles
-  pages/
-    Exercises.jsx     Browse library + build next-workout plan (persisted)
-    Classes.jsx       Sign up for group classes (persisted)
-    TrainersPage.jsx  Browse trainers + request 1-on-1 (persisted)
-    ProgressPage.jsx  Analytics (SVG trend), badges, leaderboard
-    Settings.jsx      Editable profile + notification prefs
-    HelpCenter.jsx    FAQ + contact
+  main.jsx            Renders <App/>
+  App.jsx             BrowserRouter + AuthProvider + ToastProvider + routes
+  data.js             Seed data (exercises, classes, trainers, tickets, …)
+  store.js            Low-level localStorage helpers + deriveName
+  Icon.jsx            THE shared inline-SVG icon set (import everywhere)
+  Navbar.jsx / Sidebar.jsx   Reusable chrome; Sidebar is config-driven
+  Login.jsx / Register.jsx / LandingPage.jsx / Auth.css
+  index.css
+  api/index.js        Data-access layer (occupancy/check-in, plans, tickets, …)
+  context/
+    AuthContext.jsx   useAuth(): user, login, logout, updateUser
+    ToastContext.jsx  useToast(): global showToast + toast element
+  styles/dashboard.css  Shared chrome + page styles, scoped under .fithub-app
+  dashboards/
+    config.jsx        Per-role nav + page registry (by URL slug) + chrome
+    DashboardLayout.jsx  Renders Navbar+Sidebar+page for /dashboard/:section
   components/
-    Workout.jsx       "My workout" view (embedded into the student dashboard)
-    Workoutchart.jsx  Weekly-activity bar chart
-    Progresschart.jsx 6-month progress bar chart
+    ui.jsx            StatCard, QuickAction, HourBars
+    Workout.jsx       "My workout" (assigned routine + charts)
+    Workoutchart.jsx / Progresschart.jsx  bar charts (reuse .bars)
+  pages/
+    Overview, Exercises, Classes, TrainersPage, ProgressPage,
+    Community, Facilities, Settings, HelpCenter    (student)
+    trainer/index.jsx  TrainerOverview, Members, Routines, TrainerClasses, Bookings
+    admin/index.jsx    AdminOverview, AdminMembers, Attendance, Equipment, Announcements
 ```
 
-Routing model: `main.jsx` swaps login/register/landing when signed out and
-renders the student or trainer dashboard when signed in. Each dashboard swaps
-its content by the active `Sidebar` item (no router library). Both dashboards
-share `DASHBOARD_CSS` from `dashboardStyles.js`, so new pages should reuse those
-classes (`.panel`, `.stat-card`, `.list-row`, `.info-card`, `.btn`, `.tag`, …).
+Routing model: `react-router-dom`. `/` = landing (redirects to the dashboard if
+signed in), `/login`, `/register`, and `/dashboard/:section`. One
+`DashboardLayout` serves all three roles — it reads `user.role`, pulls that
+role's `config` (nav items + page registry keyed by URL slug) from
+`dashboards/config.jsx`, and renders the matching page. To add a page: create
+the component, then add a `{ label, slug, icon, component }` entry to the role's
+`nav` in `config.jsx`. Reuse the shared classes (`.panel`, `.stat-card`,
+`.list-row`, `.info-card`, `.btn`, `.tag`, `.content-grid.split-wide`, …); do
+**not** hardcode a two-column grid inline (it won't collapse on mobile — use the
+`split-wide` modifier class instead).
 
 ## Commands
 

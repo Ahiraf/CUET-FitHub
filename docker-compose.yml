@@ -1,0 +1,38 @@
+# Runs the CUET FitHub backend + PostgreSQL together.
+#   docker compose up --build
+# API → http://localhost:8080  (Swagger at /swagger)
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cuetfithub
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./backend/CuetFitHub.Api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Default: "Host=db;Port=5432;Database=cuetfithub;Username=postgres;Password=postgres"
+      Jwt__Key: "replace_this_with_a_long_random_secret_at_least_32_chars"
+      Jwt__Issuer: "CuetFitHub"
+      Jwt__Audience: "CuetFitHubClient"
+      Cors__Origins__0: "http://localhost:5173"
+      Cors__Origins__1: "http://localhost:4173"
+      EnableSwagger: "true"
+      ASPNETCORE_ENVIRONMENT: "Production"
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:

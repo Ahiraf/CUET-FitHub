@@ -55,12 +55,22 @@ feedback & maintenance reports with admin ticket tracking.
 
 ## Tech stack
 
-**Proposal's target stack (backend not yet built):** ASP.NET Core Web API
-(.NET 8, C#) + PostgreSQL + Entity Framework Core + ASP.NET Identity/JWT +
-React frontend + Chart.js/Recharts; deploy via Docker/Azure/Render.
-(Note: the proposal's conclusion inconsistently also mentions "MERN" — the
-detailed stack table is the authoritative one: ASP.NET Core + PostgreSQL +
-React.)
+**Stack (now built end-to-end):** React 19 + Vite frontend, and an ASP.NET Core 8
+Web API backend (`backend/CuetFitHub.Api`) with EF Core + PostgreSQL + ASP.NET
+Identity + JWT. Matches the proposal's target stack. (The proposal's conclusion
+inconsistently says "MERN" — ignore that; the stack table is authoritative.)
+
+**Backend** (`backend/CuetFitHub.Api`): controllers for auth, occupancy/check-in
+(the 50-cap mechanic), exercises, plan, classes, trainers, bookings, routines,
+tickets, announcements, and admin members. `AppDbContext` (IdentityDbContext),
+`DbSeeder` runs migrations + seeds demo data on startup. JWT via `TokenService`;
+role-based `[Authorize]` (Student/Trainer/Admin). Config via env vars
+(`ConnectionStrings__Default`, `Jwt__Key`, `Cors__Origins__0`). Run it with
+`docker compose up --build` (Postgres + API) or `dotnet run`. Swagger at
+`/swagger`. See **DEPLOYMENT.md** for local + cloud (Render/Azure) instructions.
+The frontend still ships the localStorage mock (`src/api/`) by default; the REST
+endpoints already mirror those concepts — swap `src/api` for `fetch` calls +
+`VITE_API_URL` to go live.
 
 **What actually exists in this repo today:** frontend only.
 - **React 19** + **Vite 8** (ESM) + **react-router-dom v6**. Requires Node >= 20.19.0.

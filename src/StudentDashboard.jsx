@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
+import Workout from './components/Workout';
 
 const weeklyActivity = [
   { day: 'Mon', value: 58 },
@@ -94,10 +95,12 @@ export default function StudentDashboard() {
     window.setTimeout(() => setToast(''), 2600);
   };
 
+  const routedItems = ['Overview', 'My workout'];
+
   const handleNavigate = (item) => {
     setActiveItem(item);
     setSidebarOpen(false);
-    if (item !== 'Overview') showToast(`${item} is ready to explore.`);
+    if (!routedItems.includes(item)) showToast(`${item} is ready to explore.`);
   };
 
   return (
@@ -261,6 +264,9 @@ export default function StudentDashboard() {
       <Sidebar activeItem={activeItem} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onNavigate={handleNavigate} />
 
       <main className="main-content">
+        {activeItem === 'My workout' ? (
+          <Workout />
+        ) : (
         <div className="dashboard-container">
           <section className="welcome-row">
             <div>
@@ -320,9 +326,10 @@ export default function StudentDashboard() {
             </article>
           </section>
         </div>
+        )}
       </main>
 
-      {toast && <div className="toast"><Icon name="check" size={15} /> {toast}</div>}
+      {toast &&<div className="toast"><Icon name="check" size={15} /> {toast}</div>}
     </div>
   );
 }

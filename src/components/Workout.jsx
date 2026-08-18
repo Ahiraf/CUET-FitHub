@@ -4,16 +4,10 @@ import Progresschart from './Progresschart';
 
 export default function Workout() {
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: '#f6f8fc',
-        padding: '30px',
-      }}
-    >
+    <div>
       <div
         style={{
-          maxWidth: '1200px',
+          maxWidth: '1390px',
           margin: '0 auto',
         }}
       >

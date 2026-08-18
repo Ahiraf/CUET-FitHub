@@ -52,7 +52,7 @@ export default function Sidebar({ activeItem = 'Overview', onNavigate, isOpen = 
             >
               <Icon name={item.icon} />
               <span>{item.label}</span>
-              {item.label === 'Overview' && <span className="active-indicator" />}
+              {activeItem === item.label && <span className="active-indicator" />}
             </button>
           ))}
         </nav>

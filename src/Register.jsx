@@ -11,22 +11,77 @@ const roles = [
 export default function Register() {
   const { signUp } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', studentId: '', email: '', password: '', confirmPassword: '' });
+
+  const [form, setForm] = useState({
+    name: '',
+    studentId: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+
   const [role, setRole] = useState('student');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const updateField = (event) => setForm({ ...form, [event.target.name]: event.target.value });
+  const updateField = (event) =>
+    setForm({ ...form, [event.target.name]: event.target.value });
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (Object.values(form).some((value) => !value.trim())) { setError('Please complete all fields.'); return; }
-    if (form.password.length < 6) { setError('Your password must contain at least 6 characters.'); return; }
-    if (form.password !== form.confirmPassword) { setError('Passwords do not match.'); return; }
+
+    // Check that all fields are completed
+    if (Object.values(form).some((value) => !value.trim())) {
+      setError('Please complete all fields.');
+      return;
+    }
+
+    // Password length validation
+    if (form.password.length < 6) {
+      setError('Your password must contain at least 6 characters.');
+      return;
+    }
+
+    // Password confirmation validation
+    if (form.password !== form.confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    // Student email validation
+    if (
+      role === 'student' &&
+      !/^[A-Za-z0-9._%+-]+@student\.cuet\.ac\.bd$/.test(form.email.trim())
+    ) {
+      setError(
+        'Students must use a CUET student email ending with @student.cuet.ac.bd.'
+      );
+      return;
+    }
+
+    // Trainer email validation
+    if (
+      role === 'trainer' &&
+      !/^[A-Za-z0-9._%+-]+@gmail\.com$/.test(form.email.trim())
+    ) {
+      setError(
+        'Trainers must use a Gmail address ending with @gmail.com.'
+      );
+      return;
+    }
+
     setError('');
     setBusy(true);
+
     try {
-      await signUp({ fullName: form.name.trim(), studentId: form.studentId.trim(), email: form.email.trim(), password: form.password, role });
+      await signUp({
+        fullName: form.name.trim(),
+        studentId: form.studentId.trim(),
+        email: form.email.trim(),
+        password: form.password,
+        role
+      });
+
       navigate('/dashboard/overview');
     } catch (err) {
       setError(err.message || 'Could not create your account.');
@@ -38,69 +93,191 @@ export default function Register() {
   return (
     <main className="auth-page">
       <section className="auth-shell">
+
         <aside className="auth-showcase">
           <div className="brand">
             <div className="brand-mark">CF</div>
-            <div className="brand-copy"><strong>CUET FitHub</strong><span>Train. Track. Thrive.</span></div>
+
+            <div className="brand-copy">
+              <strong>CUET FitHub</strong>
+              <span>Train. Track. Thrive.</span>
+            </div>
           </div>
+
           <div className="showcase-copy">
             <span className="showcase-tag">START YOUR JOURNEY</span>
-            <h1>One account. <span>Every goal.</span></h1>
-            <p>Join CUET FitHub to manage workouts, explore classes, and make your gym time matter.</p>
+
+            <h1>
+              One account. <span>Every goal.</span>
+            </h1>
+
+            <p>
+              Join CUET FitHub to manage workouts, explore classes,
+              and make your gym time matter.
+            </p>
           </div>
+
           <div className="showcase-stats">
-            <div><strong>8+</strong><span>Weekly classes</span></div>
-            <div><strong>50</strong><span>Gym capacity</span></div>
-            <div><strong>100%</strong><span>CUET community</span></div>
+            <div>
+              <strong>8+</strong>
+              <span>Weekly classes</span>
+            </div>
+
+            <div>
+              <strong>50</strong>
+              <span>Gym capacity</span>
+            </div>
+
+            <div>
+              <strong>100%</strong>
+              <span>CUET community</span>
+            </div>
           </div>
         </aside>
 
         <section className="auth-panel">
           <div className="auth-form-wrap">
+
             <p className="auth-kicker">JOIN THE COMMUNITY</p>
-            <h2 className="auth-title">Create your account</h2>
-            <p className="auth-subtitle">Your fitness journey at CUET starts here.</p>
+
+            <h2 className="auth-title">
+              Create your account
+            </h2>
+
+            <p className="auth-subtitle">
+              Your fitness journey at CUET starts here.
+            </p>
 
             <form className="auth-form" onSubmit={handleSubmit}>
-              <label className="auth-label">Full name
-                <input className="auth-input" name="name" placeholder="Your full name" value={form.name} onChange={updateField} />
+
+              <label className="auth-label">
+                Full name
+
+                <input
+                  className="auth-input"
+                  name="name"
+                  placeholder="Your full name"
+                  value={form.name}
+                  onChange={updateField}
+                />
               </label>
-              <label className="auth-label">CUET student ID
-                <input className="auth-input" name="studentId" placeholder="e.g. 2204xxx" value={form.studentId} onChange={updateField} />
+
+              <label className="auth-label">
+                CUET student ID
+
+                <input
+                  className="auth-input"
+                  name="studentId"
+                  placeholder="e.g. 2204xxx"
+                  value={form.studentId}
+                  onChange={updateField}
+                />
               </label>
-              <label className="auth-label">CUET email address
-                <input className="auth-input" type="email" name="email" placeholder="name@cuet.ac.bd" value={form.email} onChange={updateField} />
+
+              <label className="auth-label">
+  {role === 'student' ? 'CUET email address' : 'Email address'}
+
+  <input
+    className="auth-input"
+    type="email"
+    name="email"
+    placeholder={
+      role === 'student'
+        ? 'id@student.cuet.ac.bd'
+        : 'name@gmail.com'
+    }
+    value={form.email}
+    onChange={updateField}
+  />
+</label>
+
+              <label className="auth-label">
+                Password
+
+                <input
+                  className="auth-input"
+                  type="password"
+                  name="password"
+                  placeholder="At least 6 characters"
+                  value={form.password}
+                  onChange={updateField}
+                />
               </label>
-              <label className="auth-label">Password
-                <input className="auth-input" type="password" name="password" placeholder="At least 6 characters" value={form.password} onChange={updateField} />
-              </label>
-              <label className="auth-label">Confirm password
-                <input className="auth-input" type="password" name="confirmPassword" placeholder="Repeat your password" value={form.confirmPassword} onChange={updateField} />
+
+              <label className="auth-label">
+                Confirm password
+
+                <input
+                  className="auth-input"
+                  type="password"
+                  name="confirmPassword"
+                  placeholder="Repeat your password"
+                  value={form.confirmPassword}
+                  onChange={updateField}
+                />
               </label>
 
               <div className="auth-label">
                 Account type
+
                 <div className="role-toggle">
                   {roles.map((r) => (
-                    <button className={`role-option ${role === r.key ? 'active' : ''}`} key={r.key} onClick={() => setRole(r.key)} type="button">
-                      <strong>{r.label}</strong><span>{r.hint}</span>
+                    <button
+                      className={`role-option ${
+                        role === r.key ? 'active' : ''
+                      }`}
+                      key={r.key}
+                      onClick={() => setRole(r.key)}
+                      type="button"
+                    >
+                      <strong>{r.label}</strong>
+                      <span>{r.hint}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {error && <p className="auth-error">{error}</p>}
+              {error && (
+                <p className="auth-error">
+                  {error}
+                </p>
+              )}
 
-              <button className="auth-submit" type="submit" disabled={busy}>{busy ? 'Creating…' : 'Create FitHub account →'}</button>
+              <button
+                className="auth-submit"
+                type="submit"
+                disabled={busy}
+              >
+                {busy
+                  ? 'Creating…'
+                  : 'Create FitHub account →'}
+              </button>
+
             </form>
 
             <p className="auth-switch">
               Already have an account?{' '}
-              <button className="text-button" type="button" onClick={() => navigate('/login')}>Log in</button>
+
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => navigate('/login')}
+              >
+                Log in
+              </button>
             </p>
-            <button className="back-home" type="button" onClick={() => navigate('/')}>← Back to home</button>
+
+            <button
+              className="back-home"
+              type="button"
+              onClick={() => navigate('/')}
+            >
+              ← Back to home
+            </button>
+
           </div>
         </section>
+
       </section>
     </main>
   );

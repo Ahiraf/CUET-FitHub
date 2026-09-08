@@ -31,8 +31,7 @@
 .brand-lockup > div:last-child { display: flex; flex-direction: column; gap: 3px; }
 .brand-lockup strong { color: #fff; font-size: 15px; letter-spacing: -.2px; }
 .brand-lockup span:not(.brand-mark span) { color: #8895b0; font-size: 10px; }
-.brand-mark { align-items: center; background: linear-gradient(145deg, #6688ff, #435dd6); border-radius: 11px; box-shadow: 0 8px 18px rgba(43,70,173,.35); display: flex; height: 38px; justify-content: center; width: 38px; }
-.brand-mark span { color: white; font-size: 12px; font-weight: 900; letter-spacing: -.6px; }
+.brand-mark { background: #0f1b32; border: 1px solid rgba(159,181,255,.25); border-radius: 11px; box-shadow: 0 8px 18px rgba(43,70,173,.35); display: block; height: 38px; object-fit: cover; width: 38px; }
 .sidebar-section-label { color: #687795; font-size: 10px; font-weight: 800; letter-spacing: .12em; margin: 34px 12px 12px; text-transform: uppercase; }
 .sidebar-nav { display: flex; flex-direction: column; gap: 4px; }
 .nav-item { align-items: center; background: transparent; border: 0; border-radius: 10px; color: #97a5c1; cursor: pointer; display: flex; font-size: 12px; gap: 14px; padding: 11px 13px; position: relative; text-align: left; transition: .2s ease; width: 100%; }
@@ -253,6 +252,8 @@ textarea.text-input { min-height: 84px; resize: vertical; }
 .faq-item summary { color: #2f3b54; cursor: pointer; font-size: 12px; font-weight: 700; list-style: none; }
 .faq-item summary::-webkit-details-marker { display: none; }
 .faq-item p { color: #8b96a9; font-size: 11px; line-height: 1.65; margin: 11px 0 2px; }
+.workout-log-form { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.workout-log-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 0; }
 
 /* Announcements + diet tips */
 .announce { border-left: 3px solid #cdd7f5; padding: 4px 0 4px 16px; margin-top: 16px; }

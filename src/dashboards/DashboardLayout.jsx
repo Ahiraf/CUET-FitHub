@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import Navbar from '../Navbar';
 import Sidebar from '../Sidebar';
+import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { getRoleConfig } from './config';
@@ -57,6 +58,7 @@ export default function DashboardLayout() {
       <main className="main-content">
         <PageComponent />
       </main>
+      <Footer variant="app" />
     </div>
   );
 }

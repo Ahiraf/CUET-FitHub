@@ -31,7 +31,7 @@ export default function Sidebar({
       <div aria-hidden="true" className={`sidebar-overlay ${isOpen ? 'is-visible' : ''}`} onClick={onClose} />
       <aside className={`sidebar ${isOpen ? 'is-open' : ''}`}>
         <div className="brand-lockup">
-          <div className="brand-mark"><span>CF</span></div>
+          <img alt="CUET FitHub logo" className="brand-mark" src="/favicon.png" />
           <div>
             <strong>CUET FitHub</strong>
             <span>{subtitle}</span>

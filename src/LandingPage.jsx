@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from './Icon';
+import Footer from './components/Footer';
 
 const features = [
   { icon: 'activity', title: 'Know before you go', text: 'See live occupancy and equipment availability before you head to the gym.', tone: 'blue' },
@@ -151,7 +152,7 @@ export default function LandingPage() {
 
       <section className="landing-bottom-cta" id="landing-community"><h2>Make your next session count.</h2><p>See what is happening at the gym and start building your routine today.</p><button className="landing-primary-button" onClick={onOpenDashboard} type="button">Go to dashboard <Icon name="arrow" size={15} /></button></section>
 
-      <footer className="landing-footer"><span><strong>CUET FitHub</strong> · A smarter gym experience for CUET students</span><span>Chittagong University of Engineering & Technology</span></footer>
+      <Footer variant="landing" />
     </div>
   );
 }

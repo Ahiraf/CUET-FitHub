@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../dashboards/DashboardLayout';
 import './Portal.css';
@@ -39,9 +39,28 @@ function AdminLogin() {
   </section></main>;
 }
 
+function AdminAccessDenied() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const switchAccount = () => {
+    logout();
+    navigate('/admin');
+  };
+
+  return <main className="portal-auth-page"><section className="portal-auth-card">
+    <div className="portal-auth-mark">CF</div>
+    <p className="auth-kicker">CUET FITHUB OPERATIONS</p>
+    <h1>Admin access required</h1>
+    <p>Your current account is not an administrator account. Sign out and use an approved admin account to continue.</p>
+    <button className="auth-submit" type="button" onClick={switchAccount}>Sign in as admin →</button>
+    <button className="back-home" type="button" onClick={() => navigate('/')}>← Back to FitHub</button>
+  </section></main>;
+}
+
 export default function AdminPortal() {
   const { user } = useAuth();
   if (!user) return <AdminLogin />;
-  if (user.role !== 'admin') return <Navigate to="/admin" replace />;
+  if (user.role !== 'admin') return <AdminAccessDenied />;
   return <DashboardLayout portal="admin" />;
 }

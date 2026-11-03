@@ -30,7 +30,7 @@ function AdminLogin() {
     <h1>Admin portal</h1>
     <p>Sign in to manage members, equipment reports, trainer applications, and campus announcements.</p>
     <form className="auth-form" onSubmit={submit}>
-      <label className="auth-label">Admin email<input className="auth-input" type="email" placeholder="admin@cuet.ac.bd" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
+      <label className="auth-label">Admin email<input className="auth-input" type="email" placeholder="Admin email address" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
       <label className="auth-label">Password<input className="auth-input" type="password" placeholder="Enter admin password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
       {error && <p className="auth-error">{error}</p>}
       <button className="auth-submit" disabled={busy} type="submit">{busy ? 'Signing in…' : 'Enter admin portal →'}</button>

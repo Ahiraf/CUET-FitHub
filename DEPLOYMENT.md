@@ -118,6 +118,7 @@ picks http vs mock. Both implement the same contract, which maps to the backend:
    - `Jwt__Key` = a long random secret (≥ 32 chars)
    - `Jwt__Issuer` = `CuetFitHub`, `Jwt__Audience` = `CuetFitHubClient`
    - `Cors__Origins__0` = your deployed frontend URL
+   - `Admin__Email` and `Admin__Password` = set these privately in Render for the separate admin portal
    - `ASPNETCORE_ENVIRONMENT` = `Production`, `EnableSwagger` = `true` (optional)
    The container listens on `8080` (Render maps it automatically).
 
@@ -158,7 +159,7 @@ deployment does not change the already-built JavaScript bundle.
 ## 8. Demo accounts (seeded)
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | `admin@cuet.ac.bd` | `admin123` |
+| Admin | Configure `Admin__Email` in Render | Configure `Admin__Password` in Render |
 | Trainer | `tanvir.ahmed@cuet.ac.bd` | `demo123` |
 | Student | `arif.siam@cuet.ac.bd` | `demo123` |
 

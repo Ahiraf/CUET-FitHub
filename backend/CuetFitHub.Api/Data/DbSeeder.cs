@@ -14,6 +14,7 @@ public static class DbSeeder
         var db = sp.GetRequiredService<AppDbContext>();
         var userManager = sp.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = sp.GetRequiredService<RoleManager<IdentityRole>>();
+        var config = sp.GetRequiredService<IConfiguration>();
 
         await db.Database.MigrateAsync();
 
@@ -21,7 +22,9 @@ public static class DbSeeder
             if (!await roleManager.RoleExistsAsync(role))
                 await roleManager.CreateAsync(new IdentityRole(role));
 
-        await SeedUser(userManager, "admin@cuet.ac.bd", "Gym Admin", Roles.Admin, "admin123", "ADM-01", "Operations");
+        var adminEmail = config["Admin:Email"] ?? "admin@cuet.ac.bd";
+        var adminPassword = config["Admin:Password"] ?? "admin123";
+        await SeedUser(userManager, adminEmail, "Gym Admin", Roles.Admin, adminPassword, "ADM-01", "Operations");
         await SeedUser(userManager, "tanvir.ahmed@cuet.ac.bd", "Tanvir Ahmed", Roles.Trainer, "demo123", "TR-1002", "Trainer");
         await SeedUser(userManager, "arif.siam@cuet.ac.bd", "Arif Siam", Roles.Student, "demo123", "2204077", "CSE 22", verified: true);
         await SeedUser(userManager, "nabila.haque@cuet.ac.bd", "Nabila Haque", Roles.Student, "demo123", "2201044", "Arch 22", verified: false);

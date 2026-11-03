@@ -7,12 +7,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ---- Database (PostgreSQL via EF Core) ----
-var connectionString = builder.Configuration.GetConnectionString("Default")
+var configuredConnectionString = builder.Configuration.GetConnectionString("Default")
     ?? "Host=localhost;Port=5432;Database=cuetfithub;Username=postgres;Password=postgres";
+var connectionString = NormalizeConnectionString(configuredConnectionString);
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 // ---- Identity ----
@@ -96,3 +98,23 @@ app.MapGet("/", () => Results.Ok(new { service = "CUET FitHub API", status = "ok
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 app.Run();
+
+static string NormalizeConnectionString(string value)
+{
+    if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)
+        || (uri.Scheme != "postgres" && uri.Scheme != "postgresql"))
+        return value;
+
+    var credentials = uri.UserInfo.Split(':', 2);
+    var connection = new NpgsqlConnectionStringBuilder
+    {
+        Host = uri.Host,
+        Port = uri.Port > 0 ? uri.Port : 5432,
+        Database = Uri.UnescapeDataString(uri.AbsolutePath.TrimStart('/')),
+        Username = credentials.Length > 0 ? Uri.UnescapeDataString(credentials[0]) : "",
+        Password = credentials.Length > 1 ? Uri.UnescapeDataString(credentials[1]) : "",
+        SslMode = SslMode.Require,
+    };
+
+    return connection.ConnectionString;
+}

@@ -50,10 +50,10 @@ export default function Register() {
     // Student email validation
     if (
       role === 'student' &&
-      !/^[A-Za-z0-9._%+-]+@student\.cuet\.ac\.bd$/.test(form.email.trim())
+      !/^u\d+@student\.cuet\.ac\.bd$/i.test(form.email.trim())
     ) {
       setError(
-        'Students must use a CUET student email ending with @student.cuet.ac.bd.'
+        'Use your CUET student email in the format u<studentID>@student.cuet.ac.bd.'
       );
       return;
     }
@@ -182,7 +182,7 @@ export default function Register() {
     name="email"
     placeholder={
       role === 'student'
-        ? 'id@student.cuet.ac.bd'
+        ? 'u<studentID>@student.cuet.ac.bd'
         : 'name@gmail.com'
     }
     value={form.email}

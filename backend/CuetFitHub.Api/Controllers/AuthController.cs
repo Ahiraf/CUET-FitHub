@@ -4,6 +4,7 @@ using CuetFitHub.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.RegularExpressions;
 
 namespace CuetFitHub.Api.Controllers;
 
@@ -23,11 +24,15 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto dto)
     {
+        var isTrainer = string.Equals(dto.Role, Roles.Trainer, StringComparison.OrdinalIgnoreCase);
+        if (!isTrainer && !Regex.IsMatch(dto.Email, @"^u\d+@student\.cuet\.ac\.bd$", RegexOptions.IgnoreCase))
+            return BadRequest(new { message = "Students must use an email in the format u<studentID>@student.cuet.ac.bd." });
+
         if (await _users.FindByEmailAsync(dto.Email) is not null)
             return Conflict(new { message = "An account with this email already exists." });
 
         // Students self-register; trainers are allowed for demo. Admins are seeded only.
-        var role = string.Equals(dto.Role, Roles.Trainer, StringComparison.OrdinalIgnoreCase)
+        var role = isTrainer
             ? Roles.Trainer
             : Roles.Student;
 

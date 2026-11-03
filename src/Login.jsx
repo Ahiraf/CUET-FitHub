@@ -56,7 +56,7 @@ export default function Login() {
             <form className="auth-form" onSubmit={handleSubmit}>
               <label className="auth-label">
                 CUET email address
-                <input className="auth-input" type="email" placeholder="name@cuet.ac.bd" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input className="auth-input" type="email" placeholder="u&lt;studentID&gt;@student.cuet.ac.bd" value={email} onChange={(e) => setEmail(e.target.value)} />
               </label>
 
               <label className="auth-label">
@@ -77,7 +77,6 @@ export default function Login() {
               <button className="text-button" type="button" onClick={() => navigate('/register')}>Create an account</button>
             </p>
             <p className="auth-switch">Want to coach at CUET? <button className="text-button" type="button" onClick={() => navigate('/join-trainer')}>Apply as a trainer</button></p>
-            <p className="auth-switch"><button className="text-button" type="button" onClick={() => navigate('/admin')}>Admin portal</button></p>
             <button className="back-home" type="button" onClick={() => navigate('/')}>← Back to home</button>
           </div>
         </section>

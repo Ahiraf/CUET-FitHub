@@ -12,7 +12,6 @@ import Settings from '../pages/Settings';
 import HelpCenter from '../pages/HelpCenter';
 import AIChatPage from '../pages/AIChatPage';
 import { TrainerOverview, Members, Routines, TrainerClasses, Bookings } from '../pages/trainer';
-import { AdminOverview, AdminMembers, Attendance, Equipment, Announcements, TrainerRequests } from '../pages/admin';
 
 const support = [
   { label: 'Help center', slug: 'help', icon: 'help', component: HelpCenter },
@@ -48,21 +47,6 @@ export const roleConfig = {
       { label: 'Routines', slug: 'routines', icon: 'clipboard', component: Routines },
       { label: 'Classes', slug: 'classes', icon: 'calendar', component: TrainerClasses },
       { label: 'Bookings', slug: 'bookings', icon: 'ticket', component: Bookings },
-    ],
-    support,
-  },
-  admin: {
-    subtitle: 'Operations console',
-    breadcrumbBase: 'Admin dashboard',
-    bottomCard: { icon: 'shield', title: 'Facility health', subtitle: 'Capacity within limit' },
-    nav: [
-      { label: 'Overview', slug: 'overview', icon: 'grid', component: AdminOverview },
-      { label: 'AI Coach', slug: 'ai-coach', icon: 'sparkles', component: AIChatPage },
-      { label: 'Members', slug: 'members', icon: 'shield', component: AdminMembers },
-      { label: 'Trainer requests', slug: 'trainer-requests', icon: 'clipboard', component: TrainerRequests },
-      { label: 'Attendance', slug: 'attendance', icon: 'activity', component: Attendance },
-      { label: 'Equipment', slug: 'equipment', icon: 'wrench', component: Equipment },
-      { label: 'Announcements', slug: 'announcements', icon: 'megaphone', component: Announcements },
     ],
     support,
   },

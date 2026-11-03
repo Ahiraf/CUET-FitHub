@@ -10,7 +10,7 @@ import AIChat from '../components/AIChat';
 import api from '../api';
 import '../styles/dashboard.css';
 
-export default function DashboardLayout({ portal = 'dashboard' }) {
+export default function DashboardLayout() {
   const { user, logout } = useAuth();
   const showToast = useToast();
   const navigate = useNavigate();
@@ -27,22 +27,20 @@ export default function DashboardLayout({ portal = 'dashboard' }) {
 
   // Not signed in → bounce to login.
   if (!user) return <Navigate to="/login" replace />;
-  if (portal === 'admin' && user.role !== 'admin') return <Navigate to="/admin" replace />;
-
   const config = getRoleConfig(user.role);
   const allItems = [...config.nav, ...config.support];
 
   // Unknown section → land on the role's first page.
-  if (!section) return <Navigate to={`/${portal}/overview`} replace />;
+  if (!section) return <Navigate to="/dashboard/overview" replace />;
   const active = allItems.find((i) => i.slug === section);
-  if (!active) return <Navigate to={`/${portal}/overview`} replace />;
+  if (!active) return <Navigate to="/dashboard/overview" replace />;
 
   const PageComponent = active.component;
-  const roleLabel = user.role === 'trainer' ? 'Trainer' : user.role === 'admin' ? 'Admin' : 'Student';
+  const roleLabel = user.role === 'trainer' ? 'Trainer' : 'Student';
   const navUser = { ...user, subtitle: `${user.department ? user.department + ' · ' : ''}${roleLabel}` };
 
   const go = (item) => {
-    navigate(`/${portal}/${item.slug}`);
+    navigate(`/dashboard/${item.slug}`);
     setSidebarOpen(false);
   };
 
@@ -71,7 +69,7 @@ export default function DashboardLayout({ portal = 'dashboard' }) {
       <main className="main-content">
         <PageComponent />
       </main>
-      {portal === 'dashboard' && section !== 'ai-coach' && <AIChat />}
+      {section !== 'ai-coach' && <AIChat />}
       <Footer variant="app" />
     </div>
   );

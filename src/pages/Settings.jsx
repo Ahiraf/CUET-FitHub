@@ -31,7 +31,7 @@ export default function Settings() {
     finally { setBusy(false); }
   };
 
-  const roleLabel = user?.role === 'trainer' ? 'Trainer' : 'Student';
+  const roleLabel = user?.role === 'trainer' ? 'Trainer' : user?.role === 'admin' ? 'Admin' : 'Student';
 
   return (
     <div className="dashboard-container">

@@ -6,6 +6,7 @@ import LandingPage from './LandingPage';
 import Login from './Login';
 import Register from './Register';
 import DashboardLayout from './dashboards/DashboardLayout';
+import AdminPortal from './pages/AdminPortal';
 import JoinTrainer from './pages/JoinTrainer';
 
 function RootRoute() {
@@ -23,6 +24,8 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/join-trainer" element={<JoinTrainer />} />
+            <Route path="/admin" element={<AdminPortal />} />
+            <Route path="/admin/:section" element={<AdminPortal />} />
             <Route path="/dashboard" element={<DashboardLayout />} />
             <Route path="/dashboard/:section" element={<DashboardLayout />} />
             <Route path="*" element={<Navigate to="/" replace />} />

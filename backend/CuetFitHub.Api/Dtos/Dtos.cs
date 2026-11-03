@@ -30,6 +30,7 @@ public record PlanDto(List<string> Exercises);
 // ---- Tickets ----
 public record CreateTicketDto(string Item, string Issue);
 public record TicketDto(int Id, string Item, string Issue, string ReportedBy, string Status, string Date);
+public record NotificationDto(string Id, string Title, string Body, string Type, bool Read);
 
 // ---- Announcements ----
 public record CreateAnnouncementDto(string Title, string Body, string Type);

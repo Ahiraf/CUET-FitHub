@@ -21,8 +21,12 @@ export default function DashboardLayout({ portal = 'dashboard' }) {
   useEffect(() => {
     if (!user) return undefined;
     let alive = true;
-    api.getNotifications?.().then((items) => { if (alive) setNotifications(items || []); }).catch(() => {});
-    return () => { alive = false; };
+    const loadNotifications = () => api.getNotifications?.()
+      .then((items) => { if (alive) setNotifications(items || []); })
+      .catch(() => {});
+    loadNotifications();
+    const timer = window.setInterval(loadNotifications, 30000);
+    return () => { alive = false; window.clearInterval(timer); };
   }, [user?.email]);
 
   // Not signed in → bounce to login.
@@ -54,7 +58,13 @@ export default function DashboardLayout({ portal = 'dashboard' }) {
         onMenuClick={() => setSidebarOpen(true)}
         notifications={notifications}
         unreadNotifications={notifications.filter((item) => !item.read).length}
-        onNotificationClick={async () => { setNotifications((items) => items.map((item) => ({ ...item, read: true }))); await api.markNotificationsRead?.(notifications.map((item) => item.id)); showToast('Notifications marked as read.'); }}
+        onNotificationClick={async () => {
+          const latest = await api.getNotifications?.().catch(() => null);
+          if (latest) setNotifications(latest);
+          setNotifications((items) => items.map((item) => ({ ...item, read: true })));
+          await api.markNotificationsRead?.(notifications.map((item) => item.id));
+          showToast('Notifications marked as read.');
+        }}
         onSearch={() => go(config.nav[Math.min(1, config.nav.length - 1)])}
       />
       <Sidebar

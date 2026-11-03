@@ -8,7 +8,8 @@ export function initials(name = '') {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export default function Navbar({ user, breadcrumb = 'Dashboard', onMenuClick, onSearch, onNotificationClick, onLogout }) {
+export default function Navbar({ user, breadcrumb = 'Dashboard', onMenuClick, onSearch, onNotificationClick, onLogout, notifications = [], unreadNotifications = 0 }) {
+  const [showNotifications, setShowNotifications] = React.useState(false);
   const name = user?.name || 'CUET Student';
   const subtitle = user?.subtitle || 'CUET FitHub member';
 
@@ -29,10 +30,17 @@ export default function Navbar({ user, breadcrumb = 'Dashboard', onMenuClick, on
         <button aria-label="Search" className="icon-button" onClick={onSearch} type="button">
           <Icon name="search" size={20} />
         </button>
-        <button aria-label="Notifications" className="icon-button notification-button" onClick={onNotificationClick} type="button">
+        <div className="notification-wrap">
+        <button aria-label="Notifications" className="icon-button notification-button" onClick={() => { setShowNotifications((open) => !open); onNotificationClick?.(); }} type="button">
           <Icon name="bell" size={20} />
-          <span className="notification-dot" />
+          {unreadNotifications > 0 && <span className="notification-dot" />}
         </button>
+        {showNotifications && <div className="notification-popover">
+          <div className="notification-popover-head"><strong>Notifications</strong>{unreadNotifications > 0 && <span>{unreadNotifications} new</span>}</div>
+          {notifications.length === 0 && <p className="notification-empty">Nothing new yet.</p>}
+          {notifications.slice(0, 6).map((item) => <div className={`notification-item ${item.read ? '' : 'unread'}`} key={item.id}><i /><div><strong>{item.title}</strong><p>{item.body}</p></div></div>)}
+        </div>}
+        </div>
         <div className="profile-menu">
           <div className="avatar avatar-small">{initials(name)}</div>
           <div className="profile-copy">

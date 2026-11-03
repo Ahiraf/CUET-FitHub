@@ -37,6 +37,11 @@ export const assignRoutine = (dto) => request('/api/routines/assign', { method: 
 export const getTickets = () => request('/api/tickets');
 export const createTicket = (dto) => request('/api/tickets', { method: 'POST', body: dto });
 export const setTicketStatus = (id, status) => request(`/api/tickets/${id}/status`, { method: 'PATCH', body: { status } });
+export const getNotifications = () => request('/api/notifications');
+export const markNotificationsRead = () => request('/api/notifications/read', { method: 'POST' });
+export const submitTrainerApplication = (dto) => request('/api/trainer-applications', { method: 'POST', body: dto });
+export const getTrainerApplications = () => request('/api/trainer-applications');
+export const setTrainerApplicationStatus = (id, status) => request(`/api/trainer-applications/${id}/status`, { method: 'PATCH', body: { status } });
 
 // ---- Announcements ----
 export const getAnnouncements = () => request('/api/announcements');

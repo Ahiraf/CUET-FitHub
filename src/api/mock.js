@@ -144,16 +144,42 @@ export async function assignRoutine({ memberEmail, coach, items }) {
 
 // ---- Tickets ----
 export async function getTickets() { return loadJSON('tickets', seedTickets); }
-export async function createTicket({ item, issue }) {
-  const ticket = { id: uid('tk'), item, issue, reportedBy: me()?.name || 'A student', status: 'Open', date: today() };
+export async function createTicket({ item, issue, photo }) {
+  const ticket = { id: uid('tk'), item, issue, photo: photo || '', reportedBy: me()?.name || 'A student', reportedByUserId: email(), status: 'Open', date: today() };
   const next = [ticket, ...loadJSON('tickets', seedTickets)];
   saveJSON('tickets', next);
   return ticket;
 }
+
+export async function getNotifications() {
+  const user = me();
+  const read = loadJSON(uk('readNotifications'), []);
+  const tickets = loadJSON('tickets', seedTickets);
+  const announcements = loadJSON('announcements', seedAnnouncements);
+  const items = user?.role === 'admin'
+    ? tickets.filter((ticket) => ticket.status !== 'Resolved').map((ticket) => ({ id: `ticket-${ticket.id}`, title: `Equipment report: ${ticket.item}`, body: `${ticket.reportedBy} reported: ${ticket.issue}`, type: 'maintenance' }))
+    : tickets.filter((ticket) => ticket.reportedByUserId === email()).map((ticket) => ({ id: `ticket-${ticket.id}`, title: `${ticket.item} report ${ticket.status.toLowerCase()}`, body: ticket.issue, type: 'maintenance' }));
+  const news = announcements.slice(0, 3).map((item) => ({ id: `announcement-${item.id}`, title: item.title, body: item.body, type: 'notice' }));
+  return [...items, ...news].map((item) => ({ ...item, read: read.includes(item.id) }));
+}
+export async function markNotificationsRead(ids) { saveJSON(uk('readNotifications'), ids); return true; }
 export async function setTicketStatus(id, status) {
   const next = loadJSON('tickets', seedTickets).map((t) => (t.id === id ? { ...t, status } : t));
   saveJSON('tickets', next);
   return next.find((t) => t.id === id);
+}
+
+// ---- Trainer applications ----
+export async function submitTrainerApplication(input) {
+  const application = { id: uid('ta'), ...input, status: 'Pending', date: today() };
+  saveJSON('trainerApplications', [application, ...loadJSON('trainerApplications', [])]);
+  return application;
+}
+export async function getTrainerApplications() { return loadJSON('trainerApplications', []); }
+export async function setTrainerApplicationStatus(id, status) {
+  const next = loadJSON('trainerApplications', []).map((item) => (item.id === id ? { ...item, status } : item));
+  saveJSON('trainerApplications', next);
+  return next.find((item) => item.id === id);
 }
 
 // ---- Announcements ----

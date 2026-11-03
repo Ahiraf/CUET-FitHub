@@ -5,7 +5,6 @@ import { useAuth } from './context/AuthContext';
 
 const roles = [
   { key: 'student', label: 'Student', hint: 'Train & track' },
-  { key: 'trainer', label: 'Trainer', hint: 'Coach members' },
 ];
 
 export default function Register() {
@@ -266,6 +265,7 @@ export default function Register() {
                 Log in
               </button>
             </p>
+            <p className="auth-switch">Want to coach at CUET? <button className="text-button" type="button" onClick={() => navigate('/join-trainer')}>Apply as a trainer</button></p>
 
             <button
               className="back-home"

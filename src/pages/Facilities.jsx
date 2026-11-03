@@ -10,17 +10,26 @@ const statusTone = { Open: 'red', 'In progress': 'orange', Resolved: 'green' };
 export default function Facilities() {
   const showToast = useToast();
   const { data: tickets, setData: setTickets } = useApi(() => api.getTickets(), []);
-  const [form, setForm] = useState({ item: equipmentInventory[0].name, issue: '' });
+  const [form, setForm] = useState({ item: equipmentInventory[0].name, issue: '', photo: '' });
 
   const submit = async (e) => {
     e.preventDefault();
     if (!form.issue.trim()) { showToast('Please describe the issue.'); return; }
     try {
-      const created = await api.createTicket({ item: form.item, issue: form.issue.trim() });
+      const created = await api.createTicket({ item: form.item, issue: form.issue.trim(), photo: form.photo });
       setTickets([created, ...(tickets || [])]);
-      setForm({ ...form, issue: '' });
+      setForm({ ...form, issue: '', photo: '' });
       showToast('Report submitted — thanks for flagging it.');
     } catch (err) { showToast(err.message); }
+  };
+
+  const addPhoto = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { showToast('Please choose an image under 2 MB.'); return; }
+    const reader = new FileReader();
+    reader.onload = () => setForm((current) => ({ ...current, photo: String(reader.result) }));
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -60,6 +69,11 @@ export default function Facilities() {
               <label htmlFor="f-issue">What's wrong?</label>
               <textarea id="f-issue" className="text-input" placeholder="Describe the problem…" value={form.issue} onChange={(e) => setForm({ ...form, issue: e.target.value })} />
             </div>
+            <div className="field">
+              <label htmlFor="f-photo">Add a photo <span className="field-hint">(optional, max 2 MB)</span></label>
+              <input id="f-photo" className="file-input" type="file" accept="image/*" onChange={addPhoto} />
+              {form.photo && <img className="ticket-photo-preview" src={form.photo} alt="Preview of the reported equipment issue" />}
+            </div>
             <button className="btn full" type="submit"><Icon name="wrench" size={14} /> Submit report</button>
           </form>
         </article>
@@ -72,7 +86,7 @@ export default function Facilities() {
           {(tickets || []).map((t) => (
             <div className="list-row" key={t.id}>
               <span className="row-icon"><Icon name="wrench" size={17} /></span>
-              <div className="row-main"><strong>{t.item}</strong><span>{t.issue}</span></div>
+              <div className="row-main"><strong>{t.item}</strong><span>{t.issue}</span>{t.photo && <a className="ticket-photo-link" href={t.photo} target="_blank" rel="noreferrer">View attached photo</a>}</div>
               <div className="row-meta"><span>by {t.reportedBy} · {t.date}</span></div>
               <span className={`tag ${statusTone[t.status] || 'grey'}`}>{t.status}</span>
             </div>

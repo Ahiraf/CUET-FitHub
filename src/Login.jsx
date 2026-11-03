@@ -76,6 +76,8 @@ export default function Login() {
               New to FitHub?{' '}
               <button className="text-button" type="button" onClick={() => navigate('/register')}>Create an account</button>
             </p>
+            <p className="auth-switch">Want to coach at CUET? <button className="text-button" type="button" onClick={() => navigate('/join-trainer')}>Apply as a trainer</button></p>
+            <p className="auth-switch"><button className="text-button" type="button" onClick={() => navigate('/admin')}>Admin portal</button></p>
             <button className="back-home" type="button" onClick={() => navigate('/')}>← Back to home</button>
           </div>
         </section>

@@ -114,6 +114,30 @@ export function AdminMembers() {
   );
 }
 
+export function TrainerRequests() {
+  const showToast = useToast();
+  const { data: applications, setData: setApplications } = useApi(() => api.getTrainerApplications(), []);
+  const update = async (id, status) => {
+    try {
+      const changed = await api.setTrainerApplicationStatus(id, status);
+      setApplications((applications || []).map((item) => item.id === id ? changed : item));
+      showToast(status === 'Approved' ? 'Trainer application approved.' : 'Application marked for follow-up.');
+    } catch (err) { showToast(err.message); }
+  };
+  return <div className="dashboard-container">
+    <header className="page-head"><p className="eyebrow">Professional onboarding</p><h1>Trainer requests</h1><p className="page-sub">Review applications before a coach appears in the FitHub directory.</p></header>
+    <div className="list">
+      {(applications || []).map((item) => <article className="list-row trainer-request-row" key={item.id}>
+        <span className="row-icon"><Icon name="user" size={17} /></span>
+        <div className="row-main"><strong>{item.name}</strong><span>{item.email} · {item.specialty} · {item.experience}</span><small>{item.motivation}</small></div>
+        <span className={`tag ${item.status === 'Approved' ? 'green' : item.status === 'Rejected' ? 'red' : 'orange'}`}>{item.status}</span>
+        {item.status === 'Pending' && <div className="row-actions"><button className="btn sm" type="button" onClick={() => update(item.id, 'Approved')}>Approve</button><button className="btn sm ghost" type="button" onClick={() => update(item.id, 'Rejected')}>Decline</button></div>}
+      </article>)}
+      {applications && applications.length === 0 && <div className="empty-state"><Icon name="users" size={24} /> No trainer applications yet.</div>}
+    </div>
+  </div>;
+}
+
 export function Attendance() {
   const { data: occ } = useApi(() => api.getOccupancy(), []);
   return (
@@ -195,7 +219,7 @@ export function Equipment() {
           {list.map((t) => (
             <div className="list-row" key={t.id}>
               <span className="row-icon"><Icon name="wrench" size={17} /></span>
-              <div className="row-main"><strong>{t.item}</strong><span>{t.issue}</span></div>
+              <div className="row-main"><strong>{t.item}</strong><span>{t.issue}</span>{t.photo && <a className="ticket-photo-link" href={t.photo} target="_blank" rel="noreferrer">View attached photo</a>}</div>
               <div className="row-meta"><span>by {t.reportedBy} · {t.date}</span></div>
               <span className={`tag ${ticketTone[t.status]}`}>{t.status}</span>
               <select className="select" style={{ width: 140 }} value={t.status} onChange={(e) => change(t.id, e.target.value)}>

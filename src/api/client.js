@@ -30,7 +30,14 @@ export async function request(path, { method = 'GET', body } = {}) {
 
   if (res.status === 204) return null;
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+  let data = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(`Request failed (${res.status}). The server returned an invalid response.`);
+    }
+  }
   if (!res.ok) throw new Error(data?.message || `Request failed (${res.status}).`);
   return data;
 }

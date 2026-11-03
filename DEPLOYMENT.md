@@ -128,9 +128,21 @@ picks http vs mock. Both implement the same contract, which maps to the backend:
 
 ### Frontend — Vercel / Netlify / Render Static
 - Build command `npm run build`, publish directory `dist`.
-- Set `VITE_API_URL` to the deployed backend URL.
+- Set `VITE_API_URL` to the deployed backend URL, for example
+  `https://cuet-fithub-api.onrender.com` (do not use `localhost` in Vercel).
 - SPA routing: add a rewrite so all paths serve `index.html`
   (Netlify `_redirects`: `/*  /index.html  200`; Vercel: a catch-all rewrite).
+
+This repository includes `render.yaml` for the API and PostgreSQL database, and
+`vercel.json` for the frontend SPA rewrite. After the Render service is live:
+
+1. Copy the API's public HTTPS URL into Vercel as `VITE_API_URL`.
+2. Redeploy the Vercel project so Vite embeds the new value in the production build.
+3. Set the same Vercel URL in Render as `Cors__Origins__0` and redeploy the API.
+4. Confirm `https://<api-host>/health` returns `{ "status": "ok" }` before testing registration.
+
+`VITE_API_URL` is a build-time setting. Changing it in Vercel without a new
+deployment does not change the already-built JavaScript bundle.
 
 ---
 

@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: cuet-fithub-api
+    runtime: docker
+    rootDir: backend/CuetFitHub.Api
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: ConnectionStrings__Default
+        fromDatabase:
+          name: cuet-fithub-db
+          property: connectionString
+      - key: Jwt__Key
+        generateValue: true
+      - key: Jwt__Issuer
+        value: CuetFitHub
+      - key: Jwt__Audience
+        value: CuetFitHubClient
+      - key: Cors__Origins__0
+        sync: false
+      - key: EnableSwagger
+        value: "false"
+
+databases:
+  - name: cuet-fithub-db
+    plan: free

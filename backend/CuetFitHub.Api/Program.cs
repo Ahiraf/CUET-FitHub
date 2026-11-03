@@ -93,5 +93,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapGet("/", () => Results.Ok(new { service = "CUET FitHub API", status = "ok" }));
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 app.Run();

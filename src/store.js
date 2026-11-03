@@ -34,6 +34,40 @@ export function userKey(user, name) {
   return `${who}:${name}`;
 }
 
+function localDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Progress is built from exercises checked off in My Workout. Each completed
+// exercise represents an estimated 12 active minutes until timed workout logs
+// are added to the backend.
+export function recordWorkoutExercise(user, exerciseId, completed) {
+  const key = userKey(user, 'workout-activity');
+  const history = loadJSON(key, {});
+  const date = localDateKey();
+  const exercises = new Set(history[date] || []);
+
+  if (completed) exercises.add(String(exerciseId));
+  else exercises.delete(String(exerciseId));
+
+  if (exercises.size) history[date] = [...exercises];
+  else delete history[date];
+  saveJSON(key, history);
+}
+
+export function getWorkoutActivity(user) {
+  const history = loadJSON(userKey(user, 'workout-activity'), {});
+  return Object.entries(history).map(([date, exercises]) => ({
+    date,
+    exercises: exercises.length,
+    minutes: exercises.length * 12,
+    sessions: exercises.length ? 1 : 0,
+  }));
+}
+
 // Turn an email local-part into a friendly display name, e.g.
 // "arif.siam@cuet.ac.bd" -> "Arif Siam".
 export function deriveName(email = '') {

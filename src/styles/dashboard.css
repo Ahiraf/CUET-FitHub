@@ -227,6 +227,12 @@ textarea.text-input { min-height: 84px; resize: vertical; }
 
 .line-chart { margin-top: 22px; position: relative; }
 .line-chart svg { display: block; height: 200px; width: 100%; }
+.progress-range-tabs { margin: 0; padding: 3px; }
+.progress-chart { align-items: stretch; display: flex; gap: 9px; margin-top: 22px; }
+.progress-chart-y-axis { color: #a2aaba; display: flex; flex-direction: column; font-size: 9px; justify-content: space-between; padding: 4px 0 27px; text-align: right; width: 30px; }
+.progress-activity-bars { border-bottom: 1px solid #edf0f6; flex: 1; margin-top: 0; }
+.progress-activity-bars .bar-fill { min-height: 0; }
+.progress-empty { background: #f7f9fd; border-radius: 8px; color: #8e99ac; font-size: 10px; line-height: 1.5; margin: 16px 0 0; padding: 10px 12px; }
 .metric-row { display: flex; gap: 22px; margin-top: 18px; }
 .metric { flex: 1; }
 .metric .m-label { color: #93a0b6; font-size: 10px; }

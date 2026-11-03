@@ -9,7 +9,7 @@ const faqs = [
   { q: 'How do class sign-ups work?', a: 'Under "Classes" you can join instructor-led yoga, cardio, strength and self-defense sessions. Spots are limited, so classes can fill up.' },
   { q: 'How do I book a personal trainer?', a: 'Go to "Trainers", pick a coach that matches your goal, and send a session request. The trainer confirms your slot from their dashboard.' },
   { q: 'How do I report broken equipment?', a: 'Open "Facilities", describe the issue in the report form, and submit. Admins track and resolve the ticket, and you can see its status.' },
-  { q: 'How is my progress tracked?', a: 'The "Progress" page charts your strength, body weight and BMI over time, and shows badges and your department leaderboard rank.' },
+  { q: 'How is my progress tracked?', a: 'The "Progress" page counts the exercises you complete in My Workout, estimates active minutes, and lets you view your training days by week, month or year.' },
 ];
 
 export default function HelpCenter() {

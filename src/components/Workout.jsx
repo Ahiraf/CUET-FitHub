@@ -6,6 +6,7 @@ import { StatCard } from './ui';
 import { useToast } from '../context/ToastContext';
 import { useApi } from '../hooks/useApi';
 import api from '../api';
+import { recordWorkoutExercise } from '../store';
 
 const recent = [
   { title: 'Upper Body Strength', meta: 'Yesterday', mins: 45 },
@@ -22,11 +23,17 @@ export default function Workout() {
   const pct = items.length ? Math.round((done / items.length) * 100) : 0;
 
   const toggle = async (item) => {
-    setRoutine({ ...routine, items: items.map((i) => (i.id === item.id ? { ...i, done: !i.done } : i)) });
+    const completed = !item.done;
+    setRoutine({ ...routine, items: items.map((i) => (i.id === item.id ? { ...i, done: completed } : i)) });
+    recordWorkoutExercise(user, item.id, completed);
     try {
       await api.toggleRoutineItem(item.id);
-      if (!item.done) showToast(`Nice — ${item.name} done!`);
-    } catch (e) { showToast(e.message); }
+      if (completed) showToast(`Nice — ${item.name} done!`);
+    } catch (e) {
+      recordWorkoutExercise(user, item.id, item.done);
+      setRoutine({ ...routine, items });
+      showToast(e.message);
+    }
   };
 
   return (

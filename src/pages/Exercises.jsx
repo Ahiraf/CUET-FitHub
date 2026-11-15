@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Icon from '../Icon';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -8,9 +7,8 @@ import api from '../api';
 import { muscleGroups } from '../data';
 import { getActiveWorkout, startWorkoutPlan } from '../store';
 
-export default function Exercises() {
+export default function Exercises({ embedded = false, onStarted } = {}) {
   const showToast = useToast();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('All');
@@ -47,11 +45,11 @@ export default function Exercises() {
 
   return (
     <div className="dashboard-container">
-      <header className="page-head">
+      {!embedded && <header className="page-head">
         <p className="eyebrow">Fitness library</p>
         <h1>Exercises</h1>
         <p className="page-sub">Browse the CUET gym exercise library and build the plan for your next session. Your plan is saved automatically.</p>
-      </header>
+      </header>}
 
       <section className="content-grid split-wide">
         <article className="panel">
@@ -107,7 +105,7 @@ export default function Exercises() {
               <button className="btn full" style={{ marginTop: 6 }} onClick={() => {
                 if (!activeWorkout) startWorkoutPlan(user, planList);
                 else showToast('Your current workout is saved. Continue it from My Workout first.');
-                navigate('/dashboard/my-workout');
+                onStarted?.();
               }} type="button">
                 <Icon name="bolt" size={14} /> {activeWorkout ? 'Continue workout' : 'Start this plan'}
               </button>

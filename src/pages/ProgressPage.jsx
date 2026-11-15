@@ -82,7 +82,7 @@ function formatMinutes(minutes) {
   return remaining ? `${hours}h ${remaining}m` : `${hours}h`;
 }
 
-export default function ProgressPage() {
+export default function ProgressPage({ embedded = false } = {}) {
   const { user } = useAuth();
   const [range, setRange] = useState('week');
   const history = getWorkoutActivity(user);
@@ -97,11 +97,11 @@ export default function ProgressPage() {
 
   return (
     <div className="dashboard-container">
-      <header className="page-head">
+      {!embedded && <header className="page-head">
         <p className="eyebrow">Your analytics</p>
         <h1>Progress</h1>
         <p className="page-sub">See how many training days, exercises and active minutes you have completed.</p>
-      </header>
+      </header>}
 
       <section className="content-grid">
         {activeWorkout && <article className="panel" style={{ gridColumn: '1 / -1' }}><div className="panel-header"><div><h2 className="panel-title">Workout in progress</h2><p className="panel-subtitle">Started {new Date(activeWorkout.startedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p></div><span className="tag blue">{activeWorkout.items.filter((item) => item.done).length} / {activeWorkout.items.length} done</span></div><div className="progress-track" style={{ marginTop: 14 }}><div className="progress-fill blue" style={{ width: `${Math.round(activeWorkout.items.filter((item) => item.done).length / activeWorkout.items.length * 100)}%` }} /></div><p className="panel-subtitle" style={{ marginTop: 10 }}>Your plan is saved. Complete exercises in My Workout to update your activity chart.</p></article>}

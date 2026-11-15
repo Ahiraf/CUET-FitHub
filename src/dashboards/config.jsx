@@ -1,11 +1,9 @@
 // Per-role dashboard configuration: sidebar items, page registry (by URL slug),
 // and chrome details. DashboardLayout renders whichever role the user has.
 import Overview from '../pages/Overview';
-import Workout from '../components/Workout';
-import Exercises from '../pages/Exercises';
+import TrainingPage from '../pages/TrainingPage';
 import Classes from '../pages/Classes';
 import TrainersPage from '../pages/TrainersPage';
-import ProgressPage from '../pages/ProgressPage';
 import Community from '../pages/Community';
 import Facilities from '../pages/Facilities';
 import Settings from '../pages/Settings';
@@ -27,11 +25,9 @@ export const roleConfig = {
     nav: [
       { label: 'Overview', slug: 'overview', icon: 'grid', component: Overview },
       { label: 'AI Coach', slug: 'ai-coach', icon: 'sparkles', component: AIChatPage },
-      { label: 'My workout', slug: 'my-workout', icon: 'dumbbell', component: Workout },
-      { label: 'Exercises', slug: 'exercises', icon: 'activity', component: Exercises },
+      { label: 'Training', slug: 'training', icon: 'dumbbell', component: TrainingPage },
       { label: 'Classes', slug: 'classes', icon: 'calendar', component: Classes },
       { label: 'Trainers', slug: 'trainers', icon: 'users', component: TrainersPage },
-      { label: 'Progress', slug: 'progress', icon: 'chart', component: ProgressPage },
       { label: 'Community', slug: 'community', icon: 'megaphone', component: Community },
       { label: 'Facilities', slug: 'facilities', icon: 'wrench', component: Facilities },
     ],

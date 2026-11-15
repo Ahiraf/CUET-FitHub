@@ -17,7 +17,7 @@ const recent = [
   { title: 'Functional Fitness', meta: 'Sat', mins: 40 },
 ];
 
-export default function Workout() {
+export default function Workout({ embedded = false } = {}) {
   const showToast = useToast();
   const { user } = useAuth();
   const [activeWorkout, setActiveWorkout] = useState(() => getActiveWorkout(user));
@@ -43,11 +43,11 @@ export default function Workout() {
 
   return (
     <div className="dashboard-container">
-      <header className="page-head">
+      {!embedded && <header className="page-head">
         <p className="eyebrow">Fitness dashboard</p>
         <h1>My Workout</h1>
         <p className="page-sub">Follow your assigned routine, check off exercises, and track how your training is trending.</p>
-      </header>
+      </header>}
 
       <section className="grid-4" style={{ marginTop: 22 }}>
         <StatCard accent="blue" detail="+2 from last week" icon="activity" label="Workouts completed" trend="12%" value="08" />

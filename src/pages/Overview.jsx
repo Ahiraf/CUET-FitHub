@@ -91,7 +91,7 @@ export default function Overview() {
       </section>
 
       <section aria-label="Quick actions" className="quick-actions">
-        <QuickAction description="Track your sets and routine" icon="plus" onClick={() => navigate('/dashboard/my-workout')} title="Log a workout" tone="blue" />
+        <QuickAction description="Track your sets and routine" icon="plus" onClick={() => navigate('/dashboard/training?tab=workout')} title="Log a workout" tone="blue" />
         <QuickAction description="Find a class that fits" icon="calendar" onClick={() => navigate('/dashboard/classes')} title="Book a class" tone="orange" />
         <QuickAction description="Report a broken machine" icon="wrench" onClick={() => navigate('/dashboard/facilities')} title="Facilities" tone="green" />
       </section>

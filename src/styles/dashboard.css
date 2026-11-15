@@ -167,6 +167,11 @@
 .tab { background: transparent; border: 0; border-radius: 7px; color: #7a8499; cursor: pointer; font-size: 11px; font-weight: 700; padding: 8px 15px; transition: .18s ease; }
 .tab.active { background: #fff; box-shadow: 0 2px 6px rgba(40,60,120,.08); color: #384768; }
 .tab:hover:not(.active) { color: #4a5c86; }
+.training-tabs { margin: 8px 0 20px; }
+.training-tabs .tab { font-size: 13px; min-width: 138px; padding: 11px 18px; }
+.training-tab-panel > .dashboard-container { max-width: none; }
+.training-tab-panel .page-section { margin-top: 18px; }
+@media (max-width: 600px) { .training-tabs { display: flex; width: 100%; }.training-tabs .tab { flex: 1; min-width: 0; padding: 10px 8px; } }
 
 .btn { align-items: center; background: var(--blue); border: 0; border-radius: 9px; color: #fff; cursor: pointer; display: inline-flex; font-size: 11px; font-weight: 700; gap: 7px; justify-content: center; padding: 11px 16px; transition: .2s ease; }
 .btn:hover { background: #3a58d8; box-shadow: 0 8px 18px rgba(58,88,216,.22); }

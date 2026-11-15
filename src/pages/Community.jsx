@@ -25,16 +25,15 @@ export default function Community() {
       </div>
 
       {tab === 'Announcements' && (
-        <article className="panel page-section">
-          <h2 className="panel-title">Announcements & events</h2>
-          <p className="panel-subtitle">Latest from the CUET gym</p>
+        <article className="panel page-section community-announcements">
+          <div className="community-announcements-heading"><p className="eyebrow">CUET GYM UPDATES</p><h2>Announcements &amp; Events</h2><p>News, events, and important updates for our fitness community.</p></div>
           {(announcements || []).map((a) => (
             <div className="announce" key={a.id} style={{ borderLeftColor: a.type === 'Maintenance' ? '#f0c39a' : a.type === 'Event' ? '#cbb8ef' : '#b8c8f2' }}>
               <div className="an-head">
                 <span className={`tag ${typeTone[a.type] || 'grey'}`}>{a.type}</span>
-                <h4>{a.title}</h4>
                 <span className="an-date">{a.date}</span>
               </div>
+              <h3 className="community-announcement-title">{a.title}</h3>
               <p>{a.body}</p>
             </div>
           ))}

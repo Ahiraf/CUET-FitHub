@@ -128,6 +128,9 @@ export const sampleRoutine = [
 
 // ---- Community ----
 export const seedAnnouncements = [
+  { id: 'a4', type: 'Event', title: 'Weekend wellness and mobility session', body: 'Join our trainers this Saturday for a relaxed, all-levels mobility session. Bring a water bottle and arrive 10 minutes early.', date: 'Nov 15' },
+  { id: 'a5', type: 'Notice', title: 'Keep your workout space ready for the next member', body: 'Please return weights and accessories to their marked racks after use. This helps everyone enjoy a safer and more comfortable session.', date: 'Nov 14' },
+  { id: 'a6', type: 'Maintenance', title: 'Treadmill service scheduled this week', body: 'Two treadmills will be checked by the maintenance team on Thursday afternoon. Other cardio equipment will remain available.', date: 'Nov 13' },
   { id: 'a1', type: 'Maintenance', title: 'Cable machine #2 under repair', body: 'The second cable machine will be out of service until Thursday. Sorry for the inconvenience.', date: 'Aug 16' },
   { id: 'a2', type: 'Event', title: 'Inter-department lifting meet', body: 'Sign up for the CUET strength challenge on August 30. Represent your department!', date: 'Aug 14' },
   { id: 'a3', type: 'Notice', title: 'Extended evening hours', body: 'The gym now stays open until 10:30 PM during exam week.', date: 'Aug 12' },

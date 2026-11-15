@@ -286,9 +286,9 @@ textarea.text-input { min-height: 84px; resize: vertical; }
 .nutrition-publish-form h3 { color: #243149; font-size: 18px; margin: 0; }
 .nutrition-publish-form > p { color: #7b879c; font-size: 12px; margin: -6px 0 2px; }
 .nutrition-posts { margin-bottom: 20px; }
-.tip-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
-.tip-card .tip-en { color: #36435c; font-size: 12px; line-height: 1.65; }
-.tip-card .tip-bn { color: #8b96a9; font-size: 12px; line-height: 1.8; margin-top: 10px; }
+.tip-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+.tip-card .tip-en { color: #36435c; font-size: 16px; line-height: 1.75; }
+.tip-card .tip-bn { color: #586780; font-size: 17px; line-height: 1.9; margin-top: 10px; }
 
 @media (max-width: 1100px) { .topbar { padding: 0 25px; } .main-content { padding-left: 25px; padding-right: 25px; } .occupancy-main { gap: 20px; } .bars { gap: 8px; } }
 @media (max-width: 850px) {

@@ -239,7 +239,7 @@ export function Announcements() {
   const { data: items, setData: setItems } = useApi(() => api.getAnnouncements(), []);
   const [form, setForm] = useState({ title: '', body: '', type: 'Notice' });
   const list = items || [];
-  const typeTone = { Maintenance: 'orange', Event: 'violet', Notice: 'blue' };
+  const typeTone = { Maintenance: 'orange', Event: 'violet', Notice: 'blue', Nutrition: 'green' };
 
   const post = async (e) => {
     e.preventDefault();
@@ -279,7 +279,7 @@ export function Announcements() {
             <div className="field">
               <label htmlFor="an-type">Type</label>
               <select id="an-type" className="select" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                <option>Notice</option><option>Event</option><option>Maintenance</option>
+                <option>Notice</option><option>Event</option><option>Maintenance</option><option>Nutrition</option>
               </select>
             </div>
             <div className="field"><label htmlFor="an-title">Title</label><input id="an-title" className="text-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Short headline" /></div>

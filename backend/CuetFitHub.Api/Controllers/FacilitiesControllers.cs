@@ -71,9 +71,13 @@ public class AnnouncementsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = Roles.Admin)]
+    [Authorize(Roles = $"{Roles.Admin},{Roles.Trainer}")]
     public async Task<ActionResult<AnnouncementDto>> Create(CreateAnnouncementDto dto)
     {
+        var isAdmin = User.IsInRole(Roles.Admin);
+        if (!isAdmin && (!User.IsInRole(Roles.Trainer) || !string.Equals(dto.Type, "Nutrition", StringComparison.OrdinalIgnoreCase)))
+            return Forbid();
+        if (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Body)) return BadRequest("A headline and message are required.");
         var a = new Announcement { Title = dto.Title, Body = dto.Body, Type = dto.Type };
         _db.Announcements.Add(a);
         await _db.SaveChangesAsync();

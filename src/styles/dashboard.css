@@ -280,6 +280,12 @@ textarea.text-input { min-height: 84px; resize: vertical; }
 .community-announcements .an-date { margin-left: auto; }
 .community-announcement-title { color: #1d2b46; font-size: clamp(21px, 3vw, 27px); font-weight: 850; letter-spacing: -.35px; line-height: 1.25; margin: 14px 0 0; }
 .community-announcements .announce > p { color: #586780; font-size: 15px; line-height: 1.75; margin-top: 10px; }
+.nutrition-heading { margin-top: 12px; }
+.nutrition-publish-form, .nutrition-posts { margin: 20px auto 0; max-width: 920px; }
+.nutrition-publish-form { display: flex; flex-direction: column; gap: 12px; }
+.nutrition-publish-form h3 { color: #243149; font-size: 18px; margin: 0; }
+.nutrition-publish-form > p { color: #7b879c; font-size: 12px; margin: -6px 0 2px; }
+.nutrition-posts { margin-bottom: 20px; }
 .tip-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
 .tip-card .tip-en { color: #36435c; font-size: 12px; line-height: 1.65; }
 .tip-card .tip-bn { color: #8b96a9; font-size: 12px; line-height: 1.8; margin-top: 10px; }

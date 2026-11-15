@@ -3,6 +3,8 @@ import Icon from '../Icon';
 import { useApi } from '../hooks/useApi';
 import api from '../api';
 import { dietTips } from '../data';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const tabs = ['Announcements', 'Nutrition'];
 const typeTone = { Maintenance: 'orange', Event: 'violet', Notice: 'blue' };
@@ -10,7 +12,23 @@ const typeTone = { Maintenance: 'orange', Event: 'violet', Notice: 'blue' };
 export default function Community() {
   const [tab, setTab] = useState('Announcements');
   const [lang, setLang] = useState('en');
-  const { data: announcements } = useApi(() => api.getAnnouncements(), []);
+  const { user } = useAuth();
+  const showToast = useToast();
+  const { data: announcements, setData: setAnnouncements } = useApi(() => api.getAnnouncements(), []);
+  const [nutritionForm, setNutritionForm] = useState({ title: '', body: '' });
+  const nutritionPosts = (announcements || []).filter((item) => item.type === 'Nutrition');
+  const canPublishNutrition = ['trainer', 'admin'].includes(user?.role);
+
+  const publishNutrition = async (event) => {
+    event.preventDefault();
+    if (!nutritionForm.title.trim() || !nutritionForm.body.trim()) return showToast('Add a title and nutrition guidance first.');
+    try {
+      const created = await api.addAnnouncement({ ...nutritionForm, type: 'Nutrition' });
+      setAnnouncements((items) => [created, ...(items || [])]);
+      setNutritionForm({ title: '', body: '' });
+      showToast('Nutrition update shared with students and trainers.');
+    } catch (error) { showToast(error.message); }
+  };
 
   return (
     <div className="dashboard-container">
@@ -43,6 +61,9 @@ export default function Community() {
 
       {tab === 'Nutrition' && (
         <div className="page-section">
+          <div className="community-announcements-heading nutrition-heading"><p className="eyebrow">WELLNESS &amp; FUEL</p><h2>Nutrition guidance</h2><p>Helpful food and hydration advice for training and campus life.</p></div>
+          {canPublishNutrition && <form className="panel nutrition-publish-form" onSubmit={publishNutrition}><h3>Share nutrition guidance</h3><p>Published updates appear for students and trainers.</p><div className="field"><label htmlFor="nutrition-title">Headline</label><input id="nutrition-title" className="text-input" maxLength={120} value={nutritionForm.title} onChange={(e) => setNutritionForm({ ...nutritionForm, title: e.target.value })} placeholder="A clear, helpful headline" /></div><div className="field"><label htmlFor="nutrition-body">Guidance</label><textarea id="nutrition-body" className="text-input" maxLength={1500} value={nutritionForm.body} onChange={(e) => setNutritionForm({ ...nutritionForm, body: e.target.value })} placeholder="Share practical nutrition advice…" /></div><button className="btn" type="submit"><Icon name="megaphone" size={14} /> Publish update</button></form>}
+          {nutritionPosts.length > 0 && <section className="panel community-announcements nutrition-posts"><h3 className="panel-title">Latest nutrition updates</h3>{nutritionPosts.map((post) => <article className="announce" key={post.id}><div className="an-head"><span className="tag green">Nutrition</span><span className="an-date">{post.date}</span></div><h3 className="community-announcement-title">{post.title}</h3><p>{post.body}</p></article>)}</section>}
           <div className="tabs" style={{ marginTop: 0 }}>
             <button className={`tab ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')} type="button">English</button>
             <button className={`tab ${lang === 'bn' ? 'active' : ''}`} onClick={() => setLang('bn')} type="button">বাংলা</button>

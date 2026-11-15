@@ -263,11 +263,11 @@ textarea.text-input { min-height: 84px; resize: vertical; }
 .workout-log-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 0; }
 
 /* Announcements + diet tips */
-.announce { border-left: 3px solid #cdd7f5; padding: 4px 0 4px 16px; margin-top: 16px; }
-.announce + .announce { border-top: 1px solid #f0f3f9; padding-top: 16px; }
-.announce .an-head { align-items: center; display: flex; gap: 10px; }
-.announce h4 { color: #2c3852; font-size: 12px; margin: 0; }
-.announce p { color: #8b96a9; font-size: 11px; line-height: 1.6; margin: 8px 0 0; }
+.announce { border-left: 4px solid #cdd7f5; padding: 8px 0 8px 18px; margin-top: 20px; }
+.announce + .announce { border-top: 1px solid #f0f3f9; padding-top: 20px; }
+.announce .an-head { align-items: center; display: flex; gap: 10px; flex-wrap: wrap; }
+.announce h4 { color: #243149; font-size: 17px; font-weight: 800; line-height: 1.35; margin: 0; }
+.announce p { color: #68758d; font-size: 13px; line-height: 1.7; margin: 10px 0 0; }
 .announce .an-date { color: #a7b0c0; font-size: 10px; margin-left: auto; }
 .tip-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
 .tip-card .tip-en { color: #36435c; font-size: 12px; line-height: 1.65; }

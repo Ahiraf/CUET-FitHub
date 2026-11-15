@@ -60,11 +60,22 @@ export function recordWorkoutExercise(user, exerciseId, completed) {
 
 export function getWorkoutActivity(user) {
   const history = loadJSON(userKey(user, 'workout-activity'), {});
-  return Object.entries(history).map(([date, exercises]) => ({
+  const daily = new Map(Object.entries(history).map(([date, exercises]) => [date, new Set(exercises)]));
+  // Rebuild from saved session checkoffs as a safety net, so chart totals stay
+  // aligned with the workout history even if an older activity entry is absent.
+  const sessions = loadJSON(userKey(user, 'workout-sessions'), []);
+  sessions.forEach((session) => {
+    const date = (session.startedAt || '').slice(0, 10);
+    if (!date) return;
+    const exercises = daily.get(date) || new Set();
+    session.items.filter((item) => item.done).forEach((item) => exercises.add(`plan:${session.id}:${item.id}`));
+    if (exercises.size) daily.set(date, exercises);
+  });
+  return [...daily.entries()].map(([date, exercises]) => ({
     date,
-    exercises: exercises.length,
-    minutes: exercises.length * 12,
-    sessions: exercises.length ? 1 : 0,
+    exercises: exercises.size,
+    minutes: exercises.size * 12,
+    sessions: exercises.size ? 1 : 0,
   }));
 }
 
@@ -105,7 +116,8 @@ export function finishActiveWorkout(user) {
   const session = loadJSON(key, null);
   removeKey(key);
   if (!session) return null;
-  const finished = { ...session, completedAt: new Date().toISOString(), status: 'completed' };
+  const allComplete = session.items.length > 0 && session.items.every((item) => item.done);
+  const finished = { ...session, completedAt: new Date().toISOString(), status: allComplete ? 'completed' : 'ended' };
   const sessionsKey = userKey(user, 'workout-sessions');
   const sessions = loadJSON(sessionsKey, []);
   saveJSON(sessionsKey, [finished, ...sessions.filter((saved) => saved.id !== finished.id)]);

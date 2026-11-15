@@ -1,12 +1,17 @@
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Icon from '../Icon';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useApi } from '../hooks/useApi';
 import api from '../api';
 import { muscleGroups } from '../data';
+import { getActiveWorkout, startWorkoutPlan } from '../store';
 
 export default function Exercises() {
   const showToast = useToast();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('All');
   const { data: exercises } = useApi(() => api.getExercises(), []);
@@ -14,6 +19,7 @@ export default function Exercises() {
 
   const list = exercises || [];
   const planList = plan || [];
+  const activeWorkout = getActiveWorkout(user);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -98,8 +104,12 @@ export default function Exercises() {
                   <button className="ex-check" onClick={() => togglePlan(name)} title="Remove" type="button"><Icon name="check" size={16} /></button>
                 </div>
               ))}
-              <button className="btn full" style={{ marginTop: 6 }} onClick={() => showToast('Plan ready — open My Workout to start.')} type="button">
-                <Icon name="bolt" size={14} /> Start this plan
+              <button className="btn full" style={{ marginTop: 6 }} onClick={() => {
+                if (!activeWorkout) startWorkoutPlan(user, planList);
+                else showToast('Your current workout is saved. Continue it from My Workout first.');
+                navigate('/dashboard/my-workout');
+              }} type="button">
+                <Icon name="bolt" size={14} /> {activeWorkout ? 'Continue workout' : 'Start this plan'}
               </button>
             </div>
           )}

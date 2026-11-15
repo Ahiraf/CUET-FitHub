@@ -68,6 +68,39 @@ export function getWorkoutActivity(user) {
   }));
 }
 
+export function startWorkoutPlan(user, names) {
+  const key = userKey(user, 'active-workout');
+  const session = {
+    id: `${Date.now()}`,
+    startedAt: new Date().toISOString(),
+    items: names.map((name, index) => ({ id: `${Date.now()}-${index}`, name, done: false })),
+  };
+  saveJSON(key, session);
+  return session;
+}
+
+export function getActiveWorkout(user) {
+  return loadJSON(userKey(user, 'active-workout'), null);
+}
+
+export function completeActiveWorkoutItem(user, itemId, completed) {
+  const key = userKey(user, 'active-workout');
+  const session = loadJSON(key, null);
+  if (!session) return null;
+  const next = { ...session, items: session.items.map((item) => item.id === itemId ? { ...item, done: completed } : item) };
+  saveJSON(key, next);
+  recordWorkoutExercise(user, `plan:${session.id}:${itemId}`, completed);
+  return next;
+}
+
+export function finishActiveWorkout(user) {
+  const key = userKey(user, 'active-workout');
+  const session = loadJSON(key, null);
+  removeKey(key);
+  if (!session) return null;
+  return session;
+}
+
 // Turn an email local-part into a friendly display name, e.g.
 // "arif.siam@cuet.ac.bd" -> "Arif Siam".
 export function deriveName(email = '') {

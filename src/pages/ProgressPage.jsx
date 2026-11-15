@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import Icon from '../Icon';
 import { useAuth } from '../context/AuthContext';
 import { badges, leaderboard } from '../data';
-import { getWorkoutActivity } from '../store';
+import { getActiveWorkout, getWorkoutActivity } from '../store';
 
 const RANGE_OPTIONS = [
   { key: 'week', label: 'Week' },
@@ -86,6 +86,7 @@ export default function ProgressPage() {
   const { user } = useAuth();
   const [range, setRange] = useState('week');
   const history = getWorkoutActivity(user);
+  const activeWorkout = getActiveWorkout(user);
   const activity = useMemo(() => buildActivityData(history, range), [history, range]);
   const totals = activity.reduce((total, item) => ({
     minutes: total.minutes + item.minutes,
@@ -103,6 +104,7 @@ export default function ProgressPage() {
       </header>
 
       <section className="content-grid">
+        {activeWorkout && <article className="panel" style={{ gridColumn: '1 / -1' }}><div className="panel-header"><div><h2 className="panel-title">Workout in progress</h2><p className="panel-subtitle">Started {new Date(activeWorkout.startedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p></div><span className="tag blue">{activeWorkout.items.filter((item) => item.done).length} / {activeWorkout.items.length} done</span></div><div className="progress-track" style={{ marginTop: 14 }}><div className="progress-fill blue" style={{ width: `${Math.round(activeWorkout.items.filter((item) => item.done).length / activeWorkout.items.length * 100)}%` }} /></div><p className="panel-subtitle" style={{ marginTop: 10 }}>Your plan is saved. Complete exercises in My Workout to update your activity chart.</p></article>}
         <article className="panel">
           <div className="panel-header">
             <div><h2 className="panel-title">Workout activity</h2><p className="panel-subtitle">Minutes estimated from completed exercises</p></div>

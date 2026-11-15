@@ -1,4 +1,5 @@
 import React from 'react';
+import { useState } from 'react';
 import Workoutchart from './Workoutchart';
 import Progresschart from './Progresschart';
 import Icon from '../Icon';
@@ -7,6 +8,8 @@ import { useToast } from '../context/ToastContext';
 import { useApi } from '../hooks/useApi';
 import api from '../api';
 import { recordWorkoutExercise } from '../store';
+import { useAuth } from '../context/AuthContext';
+import { completeActiveWorkoutItem, finishActiveWorkout, getActiveWorkout } from '../store';
 
 const recent = [
   { title: 'Upper Body Strength', meta: 'Yesterday', mins: 45 },
@@ -16,6 +19,8 @@ const recent = [
 
 export default function Workout() {
   const showToast = useToast();
+  const { user } = useAuth();
+  const [activeWorkout, setActiveWorkout] = useState(() => getActiveWorkout(user));
   const { data: routine, setData: setRoutine } = useApi(() => api.getMyRoutine(), []);
 
   const items = routine?.items || [];
@@ -50,6 +55,12 @@ export default function Workout() {
         <StatCard accent="violet" detail="+8% this week" icon="clock" label="Active time" value="06h 40m" />
         <StatCard accent="green" detail="New record" icon="target" label="Personal best" value="92 kg" />
       </section>
+
+      {activeWorkout && <section className="panel page-section">
+        <div className="panel-header"><div><h2 className="panel-title">Your active plan</h2><p className="panel-subtitle">{activeWorkout.items.filter((item) => item.done).length} of {activeWorkout.items.length} exercises completed · saved automatically</p></div><button className="btn sm" type="button" onClick={() => { finishActiveWorkout(user); setActiveWorkout(null); showToast('Workout saved to your progress.'); }}>Finish workout</button></div>
+        <div className="progress-track" style={{ marginTop: 12 }}><div className="progress-fill blue" style={{ width: `${Math.round(activeWorkout.items.filter((item) => item.done).length / activeWorkout.items.length * 100)}%` }} /></div>
+        <div className="list">{activeWorkout.items.map((item) => <div className={`exercise-item ${item.done ? 'done' : ''}`} key={item.id}><button className="ex-check" type="button" aria-label={`${item.done ? 'Mark' : 'Complete'} ${item.name}`} onClick={() => { const updated = completeActiveWorkoutItem(user, item.id, !item.done); setActiveWorkout(updated); if (!item.done) showToast(`${item.name} completed — nice work!`); }}><Icon name="check" size={16} /></button><div className="ex-main"><strong>{item.name}</strong><span>{item.done ? 'Completed' : 'Up next'}</span></div></div>)}</div>
+      </section>}
 
       <section className="content-grid split-wide" style={{ marginTop: 15 }}>
         <article className="panel">

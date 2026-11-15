@@ -12,6 +12,7 @@ export default function Exercises({ embedded = false, onStarted } = {}) {
   const { user } = useAuth();
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('All');
+  const [customExercise, setCustomExercise] = useState('');
   const { data: exercises } = useApi(() => api.getExercises(), []);
   const { data: plan, setData: setPlan } = useApi(() => api.getPlan(), []);
 
@@ -43,6 +44,24 @@ export default function Exercises({ embedded = false, onStarted } = {}) {
 
   const clearPlan = async () => { setPlan([]); await api.setPlan([]); showToast('Plan cleared.'); };
 
+  const addCustomExercise = async (event) => {
+    event.preventDefault();
+    const name = customExercise.trim();
+    if (!name) return;
+    if (planList.some((item) => item.toLowerCase() === name.toLowerCase())) {
+      showToast('That exercise is already in your plan.');
+      return;
+    }
+    const next = [...planList, name];
+    setPlan(next);
+    try {
+      const saved = await api.setPlan(next);
+      setPlan(saved);
+      setCustomExercise('');
+      showToast(`${name} added to your plan.`);
+    } catch (error) { setPlan(planList); showToast(error.message); }
+  };
+
   return (
     <div className="dashboard-container">
       {!embedded && <header className="page-head">
@@ -69,6 +88,11 @@ export default function Exercises({ embedded = false, onStarted } = {}) {
               </select>
             </div>
           </div>
+
+          <form className="custom-exercise-form" onSubmit={addCustomExercise}>
+            <div className="field"><label htmlFor="custom-exercise">Add your own exercise</label><input id="custom-exercise" className="text-input" maxLength={80} value={customExercise} onChange={(event) => setCustomExercise(event.target.value)} placeholder="e.g. Stair climbing or resistance-band rows" /></div>
+            <button className="btn" type="submit" disabled={!customExercise.trim()}><Icon name="plus" size={14} /> Add exercise</button>
+          </form>
 
           <div className="list">
             {filtered.map((ex) => (

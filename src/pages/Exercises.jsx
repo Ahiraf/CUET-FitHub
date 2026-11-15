@@ -99,7 +99,7 @@ export default function Exercises({ embedded = false, onStarted } = {}) {
                 <div className="exercise-item" key={name}>
                   <span className="row-icon">{i + 1}</span>
                   <div className="ex-main"><strong>{name}</strong><span>Planned</span></div>
-                  <button className="ex-check" onClick={() => togglePlan(name)} title="Remove" type="button"><Icon name="check" size={16} /></button>
+                  <button className="plan-remove" onClick={() => togglePlan(name)} aria-label={`Remove ${name} from plan`} title={`Remove ${name}`} type="button">×</button>
                 </div>
               ))}
               <button className="btn full" style={{ marginTop: 6 }} onClick={() => {

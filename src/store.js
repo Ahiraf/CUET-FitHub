@@ -89,8 +89,15 @@ export function completeActiveWorkoutItem(user, itemId, completed) {
   if (!session) return null;
   const next = { ...session, items: session.items.map((item) => item.id === itemId ? { ...item, done: completed } : item) };
   saveJSON(key, next);
+  const sessionsKey = userKey(user, 'workout-sessions');
+  const sessions = loadJSON(sessionsKey, []);
+  saveJSON(sessionsKey, [next, ...sessions.filter((saved) => saved.id !== next.id)]);
   recordWorkoutExercise(user, `plan:${session.id}:${itemId}`, completed);
   return next;
+}
+
+export function getWorkoutSessions(user) {
+  return loadJSON(userKey(user, 'workout-sessions'), []);
 }
 
 export function finishActiveWorkout(user) {
@@ -98,7 +105,11 @@ export function finishActiveWorkout(user) {
   const session = loadJSON(key, null);
   removeKey(key);
   if (!session) return null;
-  return session;
+  const finished = { ...session, completedAt: new Date().toISOString(), status: 'completed' };
+  const sessionsKey = userKey(user, 'workout-sessions');
+  const sessions = loadJSON(sessionsKey, []);
+  saveJSON(sessionsKey, [finished, ...sessions.filter((saved) => saved.id !== finished.id)]);
+  return finished;
 }
 
 // Turn an email local-part into a friendly display name, e.g.

@@ -1,7 +1,5 @@
 import React from 'react';
 import { useState } from 'react';
-import Workoutchart from './Workoutchart';
-import Progresschart from './Progresschart';
 import Icon from '../Icon';
 import { StatCard } from './ui';
 import { useToast } from '../context/ToastContext';
@@ -9,7 +7,7 @@ import { useApi } from '../hooks/useApi';
 import api from '../api';
 import { recordWorkoutExercise } from '../store';
 import { useAuth } from '../context/AuthContext';
-import { completeActiveWorkoutItem, finishActiveWorkout, getActiveWorkout } from '../store';
+import { completeActiveWorkoutItem, finishActiveWorkout, getActiveWorkout, getWorkoutSessions } from '../store';
 
 const recent = [
   { title: 'Upper Body Strength', meta: 'Yesterday', mins: 45 },
@@ -21,6 +19,7 @@ export default function Workout({ embedded = false } = {}) {
   const showToast = useToast();
   const { user } = useAuth();
   const [activeWorkout, setActiveWorkout] = useState(() => getActiveWorkout(user));
+  const [sessions, setSessions] = useState(() => getWorkoutSessions(user));
   const { data: routine, setData: setRoutine } = useApi(() => api.getMyRoutine(), []);
 
   const items = routine?.items || [];
@@ -57,10 +56,12 @@ export default function Workout({ embedded = false } = {}) {
       </section>
 
       {activeWorkout && <section className="panel page-section">
-        <div className="panel-header"><div><h2 className="panel-title">Your active plan</h2><p className="panel-subtitle">{activeWorkout.items.filter((item) => item.done).length} of {activeWorkout.items.length} exercises completed · saved automatically</p></div><button className="btn sm" type="button" onClick={() => { finishActiveWorkout(user); setActiveWorkout(null); showToast('Workout saved to your progress.'); }}>Finish workout</button></div>
+        <div className="panel-header"><div><h2 className="panel-title">Workout in progress</h2><p className="panel-subtitle">Started {new Date(activeWorkout.startedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} · {activeWorkout.items.filter((item) => item.done).length} of {activeWorkout.items.length} completed</p></div><button className="btn sm" type="button" onClick={() => { const finished = finishActiveWorkout(user); setActiveWorkout(null); setSessions((previous) => [finished, ...previous.filter((session) => session.id !== finished.id)]); showToast('Workout saved to your history.'); }}>Finish workout</button></div>
         <div className="progress-track" style={{ marginTop: 12 }}><div className="progress-fill blue" style={{ width: `${Math.round(activeWorkout.items.filter((item) => item.done).length / activeWorkout.items.length * 100)}%` }} /></div>
         <div className="list">{activeWorkout.items.map((item) => <div className={`exercise-item ${item.done ? 'done' : ''}`} key={item.id}><button className="ex-check" type="button" aria-label={`${item.done ? 'Mark' : 'Complete'} ${item.name}`} onClick={() => { const updated = completeActiveWorkoutItem(user, item.id, !item.done); setActiveWorkout(updated); if (!item.done) showToast(`${item.name} completed — nice work!`); }}><Icon name="check" size={16} /></button><div className="ex-main"><strong>{item.name}</strong><span>{item.done ? 'Completed' : 'Up next'}</span></div></div>)}</div>
       </section>}
+
+      {sessions.length > 0 && <section className="panel page-section"><div className="panel-header"><div><h2 className="panel-title">Workout history</h2><p className="panel-subtitle">Your saved sessions and exercise status</p></div></div><div className="list">{sessions.map((session) => <article className="workout-session-row" key={session.id}><div className="workout-session-head"><strong>{new Date(session.startedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</strong><span className={`tag ${session.status === 'completed' ? 'green' : 'blue'}`}>{session.status === 'completed' ? 'Completed' : 'In progress'}</span></div><p>{session.items.filter((item) => item.done).length} of {session.items.length} exercises complete</p><div className="workout-session-exercises">{session.items.map((item) => <span className={item.done ? 'is-complete' : ''} key={item.id}>{item.done ? '✓' : '○'} {item.name}</span>)}</div></article>)}</div></section>}
 
       <section className="content-grid split-wide" style={{ marginTop: 15 }}>
         <article className="panel">
@@ -100,10 +101,6 @@ export default function Workout({ embedded = false } = {}) {
         </article>
       </section>
 
-      <section className="grid-2 page-section">
-        <Workoutchart />
-        <Progresschart />
-      </section>
     </div>
   );
 }

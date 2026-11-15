@@ -221,6 +221,15 @@ textarea.text-input { min-height: 84px; resize: vertical; }
 
 .exercise-item { align-items: center; background: #fff; border: 1px solid var(--border); border-radius: 11px; display: flex; gap: 13px; padding: 13px 15px; }
 .exercise-item .ex-check { align-items: center; background: #eef2ff; border: 0; border-radius: 8px; color: #566fe0; cursor: pointer; display: flex; flex: 0 0 34px; height: 34px; justify-content: center; transition: .18s ease; }
+.plan-remove { align-items: center; background: #fff1f0; border: 0; border-radius: 9px; color: #bb514d; cursor: pointer; display: flex; flex: 0 0 36px; font-size: 24px; height: 36px; justify-content: center; line-height: 1; }
+.plan-remove:hover { background: #ffe3e0; }
+.workout-session-row { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.workout-session-head { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; }
+.workout-session-head strong { color: #2c3852; font-size: 13px; }
+.workout-session-row > p { color: #8995a9; font-size: 12px; margin: 10px 0; }
+.workout-session-exercises { display: flex; flex-wrap: wrap; gap: 8px; }
+.workout-session-exercises span { background: #f3f5fa; border-radius: 20px; color: #69758a; font-size: 11px; padding: 7px 10px; }
+.workout-session-exercises span.is-complete { background: #e6f6ef; color: #26835f; }
 .exercise-item.done .ex-check { background: #e3f6ee; color: #35a279; }
 .exercise-item .ex-main { flex: 1; }
 .exercise-item .ex-main strong { color: #2c3852; display: block; font-size: 12px; }

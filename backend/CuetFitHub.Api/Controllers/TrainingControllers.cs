@@ -123,8 +123,12 @@ public class RoutinesController : ControllerBase
         var item = await _db.RoutineItems.Include(i => i.Routine)
             .FirstOrDefaultAsync(i => i.Id == itemId);
         if (item is null || item.Routine!.OwnerUserId != uid) return NotFound();
+        await using var transaction = await _db.Database.BeginTransactionAsync();
         item.Done = !item.Done;
+        var day = WorkoutActivityController.Today;
+        await WorkoutActivityController.Save(_db, uid, $"routine:{item.Id}:{day:yyyy-MM-dd}", day, item.Done);
         await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
         return NoContent();
     }
 

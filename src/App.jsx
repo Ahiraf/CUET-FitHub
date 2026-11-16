@@ -8,6 +8,7 @@ import Register from './Register';
 import DashboardLayout from './dashboards/DashboardLayout';
 import AdminPortal from './pages/AdminPortal';
 import JoinTrainer from './pages/JoinTrainer';
+import { AboutGym, CommunityNotices } from './pages/PublicGym';
 
 function RootRoute() {
   const { user } = useAuth();
@@ -22,6 +23,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={<RootRoute />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/about" element={<AboutGym />} />
+            <Route path="/announcements" element={<CommunityNotices />} />
             <Route path="/register" element={<Register />} />
             <Route path="/join-trainer" element={<JoinTrainer />} />
             <Route path="/admin" element={<AdminPortal />} />

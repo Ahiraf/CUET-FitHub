@@ -5,6 +5,7 @@ import { StatCard } from './ui';
 import { useToast } from '../context/ToastContext';
 import { useApi } from '../hooks/useApi';
 import api from '../api';
+import { USE_HTTP, request } from '../api/client';
 import { recordWorkoutExercise, startWorkoutPlan } from '../store';
 import { useAuth } from '../context/AuthContext';
 import { completeActiveWorkoutItem, finishActiveWorkout, getActiveWorkout, getWorkoutSessions } from '../store';
@@ -27,19 +28,41 @@ export default function Workout({ embedded = false } = {}) {
   const done = items.filter((i) => i.done).length;
   const pct = items.length ? Math.round((done / items.length) * 100) : 0;
 
+  const [saving, setSaving] = useState(false);
+
   const toggle = async (item) => {
     const completed = !item.done;
     setRoutine({ ...routine, items: items.map((i) => (i.id === item.id ? { ...i, done: completed } : i)) });
-    recordWorkoutExercise(user, item.id, completed);
+    setSaving(true);
     try {
       await api.toggleRoutineItem(item.id);
+      if (!USE_HTTP) recordWorkoutExercise(user, item.id, completed);
       if (completed) showToast(`Nice — ${item.name} done!`);
     } catch (e) {
-      recordWorkoutExercise(user, item.id, item.done);
       setRoutine({ ...routine, items });
       showToast(e.message);
+    } finally {
+      setSaving(false);
     }
   };
+
+  async function togglePlanItem(item) {
+    setSaving(true);
+    try {
+      if (USE_HTTP) {
+        await request('/api/workout-activity', { method: 'PUT', body: {
+          exerciseKey: `plan:${activeWorkout.id}:${item.id}`, completed: !item.done,
+        } });
+      }
+      setActiveWorkout(completeActiveWorkoutItem(user, item.id, !item.done));
+      setSessions(getWorkoutSessions(user));
+      if (!item.done) showToast(`${item.name} completed — nice work!`);
+    } catch (error) {
+      showToast(error.message);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="dashboard-container">
@@ -62,10 +85,10 @@ export default function Workout({ embedded = false } = {}) {
         <article className="panel">
           <div className="panel-header">
             <div><h2 className="panel-title">Today's routine</h2><p className="panel-subtitle">{activeWorkout ? `Started ${new Date(activeWorkout.startedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}` : plannedExercises?.length ? 'Your saved plan · ready when you are' : routine ? `Assigned by ${routine.coach}` : 'Loading…'}</p></div>
-            {(activeWorkout || plannedExercises?.length > 0) && <div className="panel-header-actions"><span className="tag blue">{activeWorkout ? `${activeWorkout.items.filter((item) => item.done).length}/${activeWorkout.items.length} done` : `${plannedExercises.length} planned`}</span>{activeWorkout && <button className="btn sm" type="button" onClick={() => { const finished = finishActiveWorkout(user); setActiveWorkout(null); setSessions((previous) => [finished, ...previous.filter((session) => session.id !== finished.id)]); showToast('Workout saved to your history.'); }}>Finish workout</button>}</div>}
+            {(activeWorkout || plannedExercises?.length > 0) && <div className="panel-header-actions"><span className="tag blue">{activeWorkout ? `${activeWorkout.items.filter((item) => item.done).length}/${activeWorkout.items.length} done` : `${plannedExercises.length} planned`}</span>{activeWorkout && <button className="btn sm" type="button" disabled={saving} onClick={() => { const finished = finishActiveWorkout(user); setActiveWorkout(null); setSessions((previous) => [finished, ...previous.filter((session) => session.id !== finished.id)]); showToast('Workout saved to your history.'); }}>Finish workout</button>}</div>}
           </div>
           {activeWorkout ? (
-            <><div className="progress-track" style={{ marginTop: 16 }}><div className="progress-fill blue" style={{ width: `${Math.round(activeWorkout.items.filter((item) => item.done).length / activeWorkout.items.length * 100)}%` }} /></div><div className="list" style={{ marginTop: 16 }}>{activeWorkout.items.map((item) => <div className={`exercise-item ${item.done ? 'done' : ''}`} key={item.id}><button className="ex-check" type="button" aria-label={`${item.done ? 'Mark' : 'Complete'} ${item.name}`} onClick={() => { const updated = completeActiveWorkoutItem(user, item.id, !item.done); setActiveWorkout(updated); if (!item.done) showToast(`${item.name} completed — nice work!`); }}><Icon name="check" size={16} /></button><div className="ex-main"><strong>{item.name}</strong><span>{item.done ? 'Completed' : 'In progress'}</span></div></div>)}</div></>
+            <><div className="progress-track" style={{ marginTop: 16 }}><div className="progress-fill blue" style={{ width: `${Math.round(activeWorkout.items.filter((item) => item.done).length / activeWorkout.items.length * 100)}%` }} /></div><div className="list" style={{ marginTop: 16 }}>{activeWorkout.items.map((item) => <div className={`exercise-item ${item.done ? 'done' : ''}`} key={item.id}><button className="ex-check" type="button" aria-label={`${item.done ? 'Mark' : 'Complete'} ${item.name}`} disabled={saving} onClick={() => togglePlanItem(item)}><Icon name="check" size={16} /></button><div className="ex-main"><strong>{item.name}</strong><span>{item.done ? 'Completed' : 'In progress'}</span></div></div>)}</div></>
           ) : plannedExercises?.length ? (
             <><div className="list" style={{ marginTop: 16 }}>{plannedExercises.map((name, index) => <div className="exercise-item" key={`${name}-${index}`}><span className="row-icon">{index + 1}</span><div className="ex-main"><strong>{name}</strong><span>Planned</span></div></div>)}</div><button className="btn" style={{ marginTop: 14 }} type="button" onClick={() => { const session = startWorkoutPlan(user, plannedExercises); setActiveWorkout(session); showToast('Workout started. Your progress will update as you complete exercises.'); }}><Icon name="bolt" size={14} /> Start today’s plan</button></>
           ) : routine ? (
@@ -74,7 +97,7 @@ export default function Workout({ embedded = false } = {}) {
               <div className="list" style={{ marginTop: 16 }}>
                 {items.map((item) => (
                   <div className={`exercise-item ${item.done ? 'done' : ''}`} key={item.id}>
-                    <button className="ex-check" onClick={() => toggle(item)} type="button" aria-label={`Toggle ${item.name}`}><Icon name="check" size={16} /></button>
+                    <button className="ex-check" disabled={saving} onClick={() => toggle(item)} type="button" aria-label={`Toggle ${item.name}`}><Icon name="check" size={16} /></button>
                     <div className="ex-main"><strong>{item.name}</strong><span>{item.target}</span></div>
                   </div>
                 ))}

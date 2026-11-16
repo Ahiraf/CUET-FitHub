@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../Icon';
 import { StatCard, QuickAction, HourBars } from '../components/ui';
@@ -6,13 +6,13 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useApi } from '../hooks/useApi';
 import api from '../api';
-import { weeklyActivity, equipmentInventory, upcoming, hourlyOccupancy } from '../data';
+import WorkoutActivity from '../components/WorkoutActivity';
+import { equipmentInventory, upcoming, hourlyOccupancy } from '../data';
 
 export default function Overview() {
   const { user } = useAuth();
   const showToast = useToast();
   const navigate = useNavigate();
-  const [selectedDay, setSelectedDay] = useState('Thu');
   const { data: occ, setData: setOcc } = useApi(() => api.getOccupancy(), []);
 
   const firstName = (user?.name || '').trim().split(/\s+/)[0] || 'there';
@@ -77,17 +77,7 @@ export default function Overview() {
           ) : <div className="empty-state">Loading occupancy…</div>}
         </article>
 
-        <article className="panel chart-panel">
-          <div className="panel-header"><div><h2 className="panel-title">Weekly activity</h2><p className="panel-subtitle">Minutes active per day</p></div><div className="chart-legend"><span className="legend-dot" /> This week</div></div>
-          <div aria-label="Weekly activity chart" className="bars">
-            {weeklyActivity.map((item) => (
-              <button aria-label={`${item.day}: ${item.value} minutes`} className={`bar-column ${selectedDay === item.day ? 'selected' : ''}`} key={item.day} onClick={() => setSelectedDay(item.day)} type="button">
-                <span className="bar-track"><span className="bar-fill" style={{ height: `${item.value}%` }} /></span>
-                <span className="bar-label">{item.day}</span>
-              </button>
-            ))}
-          </div>
-        </article>
+        <WorkoutActivity weeklyOnly />
       </section>
 
       <section aria-label="Quick actions" className="quick-actions">

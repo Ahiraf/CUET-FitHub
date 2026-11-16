@@ -1,100 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import React from 'react';
+import WorkoutActivity from '../components/WorkoutActivity';
 import Icon from '../Icon';
 import { useAuth } from '../context/AuthContext';
 import { badges, leaderboard } from '../data';
-import { getActiveWorkout, getWorkoutActivity } from '../store';
-
-const RANGE_OPTIONS = [
-  { key: 'week', label: 'Week' },
-  { key: 'month', label: 'Month' },
-  { key: 'year', label: 'Year' },
-];
-
-function dateKey(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function addDays(date, days) {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next;
-}
-
-function sumRange(history, start, end) {
-  const first = dateKey(start);
-  const last = dateKey(end);
-  return history.reduce((total, item) => (
-    item.date >= first && item.date <= last
-      ? {
-        minutes: total.minutes + item.minutes,
-        exercises: total.exercises + item.exercises,
-        sessions: total.sessions + item.sessions,
-      }
-      : total
-  ), { minutes: 0, exercises: 0, sessions: 0 });
-}
-
-function buildActivityData(history, range) {
-  const today = new Date();
-
-  if (range === 'week') {
-    return Array.from({ length: 7 }, (_, index) => {
-      const date = addDays(today, index - 6);
-      const day = history.find((item) => item.date === dateKey(date));
-      return {
-        label: date.toLocaleDateString('en-US', { weekday: 'short' }),
-        title: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        ...(day || { minutes: 0, exercises: 0, sessions: 0 }),
-      };
-    });
-  }
-
-  if (range === 'month') {
-    return Array.from({ length: 5 }, (_, index) => {
-      const start = addDays(today, -29 + index * 7);
-      const end = index === 4 ? today : addDays(start, 6);
-      return {
-        label: `${start.toLocaleDateString('en-US', { month: 'short' })} ${start.getDate()}`,
-        title: `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
-        ...sumRange(history, start, end),
-      };
-    });
-  }
-
-  return Array.from({ length: 12 }, (_, index) => {
-    const start = new Date(today.getFullYear(), today.getMonth() - 11 + index, 1);
-    const end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
-    return {
-      label: start.toLocaleDateString('en-US', { month: 'short' }),
-      title: start.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-      ...sumRange(history, start, end),
-    };
-  });
-}
-
-function formatMinutes(minutes) {
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  const remaining = minutes % 60;
-  return remaining ? `${hours}h ${remaining}m` : `${hours}h`;
-}
+import { getActiveWorkout } from '../store';
 
 export default function ProgressPage({ embedded = false } = {}) {
   const { user } = useAuth();
-  const [range, setRange] = useState('week');
-  const history = getWorkoutActivity(user);
   const activeWorkout = getActiveWorkout(user);
-  const activity = useMemo(() => buildActivityData(history, range), [history, range]);
-  const totals = activity.reduce((total, item) => ({
-    minutes: total.minutes + item.minutes,
-    exercises: total.exercises + item.exercises,
-    sessions: total.sessions + item.sessions,
-  }), { minutes: 0, exercises: 0, sessions: 0 });
-  const chartMax = Math.max(60, ...activity.map((item) => item.minutes));
-
   return (
     <div className="dashboard-container">
       {!embedded && <header className="page-head">
@@ -105,32 +18,7 @@ export default function ProgressPage({ embedded = false } = {}) {
 
       <section className="content-grid">
         {activeWorkout && <article className="panel" style={{ gridColumn: '1 / -1' }}><div className="panel-header"><div><h2 className="panel-title">Workout in progress</h2><p className="panel-subtitle">Started {new Date(activeWorkout.startedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p></div><span className="tag blue">{activeWorkout.items.filter((item) => item.done).length} / {activeWorkout.items.length} done</span></div><div className="progress-track" style={{ marginTop: 14 }}><div className="progress-fill blue" style={{ width: `${Math.round(activeWorkout.items.filter((item) => item.done).length / activeWorkout.items.length * 100)}%` }} /></div><p className="panel-subtitle" style={{ marginTop: 10 }}>Your plan is saved. Complete exercises in My Workout to update your activity chart.</p></article>}
-        <article className="panel">
-          <div className="panel-header">
-            <div><h2 className="panel-title">Workout activity</h2><p className="panel-subtitle">Minutes estimated from completed exercises</p></div>
-            <div className="tabs progress-range-tabs">
-              {RANGE_OPTIONS.map((option) => <button className={`tab ${range === option.key ? 'active' : ''}`} key={option.key} onClick={() => setRange(option.key)} type="button">{option.label}</button>)}
-            </div>
-          </div>
-
-          <div className="progress-chart" aria-label={`Workout activity for the selected ${range}`}>
-            <div className="progress-chart-y-axis"><span>{chartMax}m</span><span>{Math.round(chartMax / 2)}m</span><span>0m</span></div>
-            <div className="bars progress-activity-bars">
-              {activity.map((item) => <div className="bar-column" key={item.title} title={`${item.title}: ${item.minutes} minutes, ${item.exercises} exercises`}>
-                <span className="bar-track"><span className="bar-fill" style={{ height: `${item.minutes ? Math.max(8, Math.round((item.minutes / chartMax) * 100)) : 0}%` }} /></span>
-                <span className="bar-label">{item.label}</span>
-              </div>)}
-            </div>
-          </div>
-
-          <div className="metric-row">
-            <div className="metric"><div className="m-label">Training days</div><div className="m-value">{totals.sessions}</div><div className="m-delta">Days with completed exercises</div></div>
-            <div className="metric"><div className="m-label">Active time</div><div className="m-value">{formatMinutes(totals.minutes)}</div><div className="m-delta">Estimated from your log</div></div>
-            <div className="metric"><div className="m-label">Exercises done</div><div className="m-value">{totals.exercises}</div><div className="m-delta">Marked complete in My Workout</div></div>
-          </div>
-          {totals.exercises === 0 && <p className="progress-empty">No completed exercises in this period yet. Check off exercises in My Workout to start tracking.</p>}
-        </article>
-
+        <WorkoutActivity />
         <article className="panel">
           <div className="panel-header">
             <div><h2 className="panel-title">Department leaderboard</h2><p className="panel-subtitle">This month · points</p></div>

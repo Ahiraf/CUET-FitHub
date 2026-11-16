@@ -64,6 +64,7 @@ public class AnnouncementsController : ControllerBase
     public AnnouncementsController(AppDbContext db) => _db = db;
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<AnnouncementDto>>> Get()
     {
         var items = await _db.Announcements.OrderByDescending(a => a.CreatedAt).ToListAsync();

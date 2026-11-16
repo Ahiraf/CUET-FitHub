@@ -7,12 +7,17 @@ export default function JoinTrainer() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', specialty: '', experience: '', motivation: '' });
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const update = (event) => setForm({ ...form, [event.target.name]: event.target.value });
   const submit = async (event) => {
     event.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
+    setError('');
     try { await api.submitTrainerApplication(form); setSent(true); }
     catch (err) { setError(err.message || 'Could not submit your application.'); }
+    finally { setSubmitting(false); }
   };
   if (sent) return <main className="portal-auth-page"><section className="portal-auth-card portal-success"><div className="portal-auth-mark">✓</div><p className="auth-kicker">APPLICATION RECEIVED</p><h1>You’re on the list.</h1><p>The FitHub operations team will review your trainer application and contact you after approval.</p><button className="auth-submit" onClick={() => navigate('/login')} type="button">Back to login →</button></section></main>;
   return <main className="portal-auth-page"><section className="portal-join-card">
@@ -23,7 +28,7 @@ export default function JoinTrainer() {
       <label className="auth-label">Specialty<input className="auth-input" name="specialty" value={form.specialty} onChange={update} placeholder="Strength, yoga, cardio…" required /></label>
       <label className="auth-label">Experience<input className="auth-input" name="experience" value={form.experience} onChange={update} placeholder="e.g. 3 years coaching" required /></label>
       <label className="auth-label">Why do you want to join?<textarea className="auth-input portal-textarea" name="motivation" value={form.motivation} onChange={update} placeholder="Tell the team about your coaching approach" required /></label>
-      {error && <p className="auth-error">{error}</p>}<button className="auth-submit" type="submit">Submit application →</button>
+      {error && <p className="auth-error">{error}</p>}<button className="auth-submit" type="submit" disabled={submitting}>{submitting ? 'Submitting…' : 'Submit application →'}</button>
     </form><button className="back-home" type="button" onClick={() => navigate('/login')}>← Back to login</button>
   </section></main>;
 }

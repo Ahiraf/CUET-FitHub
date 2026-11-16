@@ -8,7 +8,8 @@ import api from '../api';
 import { USE_HTTP, request } from '../api/client';
 import { recordWorkoutExercise, startWorkoutPlan } from '../store';
 import { useAuth } from '../context/AuthContext';
-import { completeActiveWorkoutItem, finishActiveWorkout, getActiveWorkout, getWorkoutSessions } from '../store';
+import { syncWorkoutHistory } from '../api/workoutHistory';
+import { completeSavedWorkout, completeActiveWorkoutItem, finishActiveWorkout, getActiveWorkout, getWorkoutSessions } from '../store';
 
 const recent = [
   { title: 'Upper Body Strength', meta: 'Yesterday', mins: 45 },
@@ -46,6 +47,27 @@ export default function Workout({ embedded = false } = {}) {
     }
   };
 
+  async function closeWorkout(completeAll, savedId) {
+    if (savedId) completeSavedWorkout(user, savedId);
+    else {
+      finishActiveWorkout(user, completeAll);
+      setActiveWorkout(null);
+    }
+    setSessions(getWorkoutSessions(user));
+    if (USE_HTTP) {
+      setSaving(true);
+      try {
+        await syncWorkoutHistory(user);
+      } catch {
+        showToast('Saved on this device. Open Progress to retry syncing.');
+        return;
+      } finally {
+        setSaving(false);
+      }
+    }
+    showToast('Workout saved to your history.');
+  }
+
   async function togglePlanItem(item) {
     setSaving(true);
     try {
@@ -79,13 +101,16 @@ export default function Workout({ embedded = false } = {}) {
         <StatCard accent="green" detail="New record" icon="target" label="Personal best" value="92 kg" />
       </section>
 
-      {sessions.length > 0 && <section className="panel page-section"><div className="panel-header"><div><h2 className="panel-title">Workout history</h2><p className="panel-subtitle">Your saved sessions and exercise status</p></div></div><div className="list">{sessions.map((session) => <article className="workout-session-row" key={session.id}><div className="workout-session-head"><strong>{new Date(session.startedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</strong><span className={`tag ${session.status === 'completed' ? 'green' : session.status === 'ended' ? 'grey' : 'blue'}`}>{session.status === 'completed' ? 'Completed' : session.status === 'ended' ? 'Ended early' : 'In progress'}</span></div><p>{session.items.filter((item) => item.done).length} of {session.items.length} exercises complete</p><div className="workout-session-exercises">{session.items.map((item) => <span className={item.done ? 'is-complete' : ''} key={item.id}>{item.done ? '✓' : '○'} {item.name}</span>)}</div></article>)}</div></section>}
+      {sessions.length > 0 && <section className="panel page-section"><div className="panel-header"><div><h2 className="panel-title">Workout history</h2><p className="panel-subtitle">Your saved sessions and exercise status</p></div></div><div className="list">{sessions.map((session) => <article className="workout-session-row" key={session.id}><div className="workout-session-head"><strong>{new Date(session.startedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</strong><span className={`tag ${session.status === 'completed' ? 'green' : session.status === 'ended' ? 'grey' : 'blue'}`}>{session.status === 'completed' ? 'Completed' : session.status === 'ended' ? 'Ended early' : 'In progress'}</span></div><p>{session.items.filter((item) => item.done).length} of {session.items.length} exercises complete</p><div className="workout-session-exercises">{session.items.map((item) => <span className={item.done ? 'is-complete' : ''} key={item.id}>{item.done ? '✓' : '○'} {item.name}</span>)}</div>{session.completedAt && session.items.some(item => !item.done) && <button className="btn sm" type="button" disabled={saving} onClick={() => closeWorkout(true, session.id)}>Mark all complete</button>}</article>)}</div></section>}
 
       <section className="content-grid split-wide" style={{ marginTop: 15 }}>
         <article className="panel">
           <div className="panel-header">
             <div><h2 className="panel-title">Today's routine</h2><p className="panel-subtitle">{activeWorkout ? `Started ${new Date(activeWorkout.startedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}` : plannedExercises?.length ? 'Your saved plan · ready when you are' : routine ? `Assigned by ${routine.coach}` : 'Loading…'}</p></div>
-            {(activeWorkout || plannedExercises?.length > 0) && <div className="panel-header-actions"><span className="tag blue">{activeWorkout ? `${activeWorkout.items.filter((item) => item.done).length}/${activeWorkout.items.length} done` : `${plannedExercises.length} planned`}</span>{activeWorkout && <button className="btn sm" type="button" disabled={saving} onClick={() => { const finished = finishActiveWorkout(user); setActiveWorkout(null); setSessions((previous) => [finished, ...previous.filter((session) => session.id !== finished.id)]); showToast('Workout saved to your history.'); }}>Finish workout</button>}</div>}
+            {(activeWorkout || plannedExercises?.length > 0) && <div className="panel-header-actions"><span className="tag blue">{activeWorkout ? `${activeWorkout.items.filter((item) => item.done).length}/${activeWorkout.items.length} done` : `${plannedExercises.length} planned`}</span>{activeWorkout && <>
+              <button className="btn sm" type="button" disabled={saving} onClick={() => closeWorkout(true)}>Complete all &amp; finish</button>
+              {activeWorkout.items.some(item => !item.done) && <button className="btn sm" type="button" disabled={saving} onClick={() => closeWorkout(false)}>End early</button>}
+            </>}</div>}
           </div>
           {activeWorkout ? (
             <><div className="progress-track" style={{ marginTop: 16 }}><div className="progress-fill blue" style={{ width: `${Math.round(activeWorkout.items.filter((item) => item.done).length / activeWorkout.items.length * 100)}%` }} /></div><div className="list" style={{ marginTop: 16 }}>{activeWorkout.items.map((item) => <div className={`exercise-item ${item.done ? 'done' : ''}`} key={item.id}><button className="ex-check" type="button" aria-label={`${item.done ? 'Mark' : 'Complete'} ${item.name}`} disabled={saving} onClick={() => togglePlanItem(item)}><Icon name="check" size={16} /></button><div className="ex-main"><strong>{item.name}</strong><span>{item.done ? 'Completed' : 'In progress'}</span></div></div>)}</div></>

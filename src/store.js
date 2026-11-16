@@ -63,12 +63,16 @@ export function getWorkoutActivity(user) {
   const daily = new Map(Object.entries(history).map(([date, exercises]) => [date, new Set(exercises)]));
   // Rebuild from saved session checkoffs as a safety net, so chart totals stay
   // aligned with the workout history even if an older activity entry is absent.
-  const sessions = loadJSON(userKey(user, 'workout-sessions'), []);
+  const sessions = getWorkoutSessions(user);
+  const recorded = new Set([...daily.values()].flatMap(keys => [...keys]));
   sessions.forEach((session) => {
-    const date = (session.startedAt || '').slice(0, 10);
+    const date = localDateKey(new Date(session.completedAt || session.startedAt));
     if (!date) return;
     const exercises = daily.get(date) || new Set();
-    session.items.filter((item) => item.done).forEach((item) => exercises.add(`plan:${session.id}:${item.id}`));
+    session.items.filter(item => item.done).forEach(item => {
+      const key = `plan:${session.id}:${item.id}`;
+      if (!recorded.has(key)) exercises.add(key);
+    });
     if (exercises.size) daily.set(date, exercises);
   });
   return [...daily.entries()].map(([date, exercises]) => ({
@@ -108,19 +112,39 @@ export function completeActiveWorkoutItem(user, itemId, completed) {
 }
 
 export function getWorkoutSessions(user) {
-  return loadJSON(userKey(user, 'workout-sessions'), []);
+  return loadJSON(userKey(user, 'workout-sessions'), []).map(session => {
+    // Older versions saved Finish as "completed" without setting the checkboxes.
+    if (session.status !== 'completed' || session.items.every(item => item.done)) return session;
+    if (session.items.some(item => item.done)) return { ...session, status: 'ended' };
+    return { ...session, items: session.items.map(item => ({ ...item, done: true })) };
+  });
 }
 
-export function finishActiveWorkout(user) {
-  const key = userKey(user, 'active-workout');
-  const session = loadJSON(key, null);
-  removeKey(key);
+function saveClosedWorkout(user, session, completeAll) {
+  const items = completeAll ? session.items.map(item => ({ ...item, done: true })) : session.items;
+  const finished = {
+    ...session, items, completedAt: session.completedAt || new Date().toISOString(),
+    status: items.every(item => item.done) ? 'completed' : 'ended',
+  };
+  const sessions = getWorkoutSessions(user);
+  if (sessions.some(saved => saved.id === session.id)) {
+    saveJSON(userKey(user, 'workout-sessions'), sessions.map(saved => saved.id === session.id ? finished : saved));
+  } else {
+    saveJSON(userKey(user, 'workout-sessions'), [finished, ...sessions]);
+  }
+  return finished;
+}
+
+export function completeSavedWorkout(user, id) {
+  const session = getWorkoutSessions(user).find(saved => saved.id === id);
+  if (session?.completedAt) saveClosedWorkout(user, session, true);
+}
+
+export function finishActiveWorkout(user, completeAll = true) {
+  const session = getActiveWorkout(user);
   if (!session) return null;
-  const allComplete = session.items.length > 0 && session.items.every((item) => item.done);
-  const finished = { ...session, completedAt: new Date().toISOString(), status: allComplete ? 'completed' : 'ended' };
-  const sessionsKey = userKey(user, 'workout-sessions');
-  const sessions = loadJSON(sessionsKey, []);
-  saveJSON(sessionsKey, [finished, ...sessions.filter((saved) => saved.id !== finished.id)]);
+  const finished = saveClosedWorkout(user, session, completeAll);
+  removeKey(userKey(user, 'active-workout'));
   return finished;
 }
 

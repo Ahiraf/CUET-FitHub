@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { request, USE_HTTP } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { syncWorkoutHistory } from '../api/workoutHistory';
 import { getWorkoutActivity } from '../store';
 
 const RANGE_OPTIONS = [
@@ -101,6 +102,8 @@ export default function WorkoutActivity({ weeklyOnly = false }) {
       if (fetching || !user) return;
       fetching = true;
       try {
+        if (USE_HTTP) await syncWorkoutHistory(user);
+        if (!active) return;
         const history = USE_HTTP
           ? await request(`/api/workout-activity?start=${first}&end=${last}`)
           : getWorkoutActivity(user);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import Navbar from '../Navbar';
 import Sidebar from '../Sidebar';
@@ -15,7 +15,30 @@ export default function DashboardLayout({ portal = 'dashboard' }) {
   const showToast = useToast();
   const navigate = useNavigate();
   const { section } = useParams();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const mobileQuery = '(max-width: 850px)';
+  const [sidebarOpen, setSidebarOpen] = useState(() => !window.matchMedia(mobileQuery).matches);
+  const [sidebarWidth, setSidebarWidth] = useState(258);
+  const menuButton = useRef(null);
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+    requestAnimationFrame(() => menuButton.current?.focus());
+  };
+
+  useEffect(() => {
+    const media = window.matchMedia(mobileQuery);
+    const resize = event => setSidebarOpen(!event.matches);
+    media.addEventListener('change', resize);
+    return () => media.removeEventListener('change', resize);
+  }, []);
+
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const escape = event => {
+      if (event.key === 'Escape') closeSidebar();
+    };
+    window.addEventListener('keydown', escape);
+    return () => window.removeEventListener('keydown', escape);
+  }, [sidebarOpen]);
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
@@ -46,15 +69,17 @@ export default function DashboardLayout({ portal = 'dashboard' }) {
 
   const go = (item) => {
     navigate(`/${portal}/${item.slug}`);
-    setSidebarOpen(false);
+    if (window.matchMedia(mobileQuery).matches) closeSidebar();
   };
 
   return (
-    <div className="fithub-app">
+    <div className="fithub-app" data-role={user.role} data-sidebar-open={sidebarOpen} style={{ '--sidebar-width': `${sidebarWidth}px` }}>
       <Navbar
         user={navUser}
         breadcrumb={active.slug === 'overview' ? config.breadcrumbBase : active.label}
         onLogout={() => { logout(); navigate('/login'); }}
+        menuButton={menuButton}
+        sidebarOpen={sidebarOpen}
         onMenuClick={() => setSidebarOpen(true)}
         notifications={notifications}
         unreadNotifications={notifications.filter((item) => !item.read).length}
@@ -70,7 +95,9 @@ export default function DashboardLayout({ portal = 'dashboard' }) {
       <Sidebar
         activeItem={active.label}
         isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
+        onClose={closeSidebar}
+        width={sidebarWidth}
+        onResize={value => setSidebarWidth(Math.max(225, Math.min(340, value)))}
         onNavigate={go}
         navItems={config.nav}
         supportItems={config.support}

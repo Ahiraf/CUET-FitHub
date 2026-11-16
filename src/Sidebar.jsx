@@ -6,6 +6,8 @@ export default function Sidebar({
   onNavigate,
   isOpen = false,
   onClose,
+  width,
+  onResize,
   navItems = [],
   supportItems = [],
   subtitle = 'Student wellness',
@@ -29,7 +31,8 @@ export default function Sidebar({
   return (
     <>
       <div aria-hidden="true" className={`sidebar-overlay ${isOpen ? 'is-visible' : ''}`} onClick={onClose} />
-      <aside className={`sidebar ${isOpen ? 'is-open' : ''}`}>
+      <aside id="workspace-sidebar" aria-label="Workspace navigation" inert={!isOpen} className={`sidebar ${isOpen ? 'is-open' : ''}`}>
+        <div className="sidebar-heading">
         <div className="brand-lockup">
           <img alt="CUET FitHub logo" className="brand-mark" src="/favicon.png" />
           <div>
@@ -38,6 +41,9 @@ export default function Sidebar({
           </div>
         </div>
 
+        <button className="sidebar-close" type="button" aria-label="Close navigation" onClick={onClose}><Icon name="x" size={18} /></button>
+        </div>
+        <div className="sidebar-scroll">
         <div className="sidebar-section-label">Main menu</div>
         <nav aria-label="Main navigation" className="sidebar-nav">
           {navItems.map(renderItem)}
@@ -62,6 +68,19 @@ export default function Sidebar({
         </div>
 
         <div className="sidebar-footer">{footerNote} <span>·</span> v1.0</div>
+        </div>
+        <div className="sidebar-resize" role="separator" tabIndex={0} aria-orientation="vertical"
+          aria-label="Resize sidebar" aria-valuemin={225} aria-valuemax={340} aria-valuenow={width}
+          onPointerDown={event => event.currentTarget.setPointerCapture(event.pointerId)}
+          onPointerMove={event => {
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) onResize(event.clientX);
+          }}
+          onKeyDown={event => {
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+              event.preventDefault();
+              onResize(width + (event.key === 'ArrowLeft' ? -10 : 10));
+            }
+          }} />
       </aside>
     </>
   );

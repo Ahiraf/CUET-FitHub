@@ -8,7 +8,7 @@ export function initials(name = '') {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export default function Navbar({ user, breadcrumb = 'Dashboard', onMenuClick, onSearch, onNotificationClick, onLogout, notifications = [], unreadNotifications = 0 }) {
+export default function Navbar({ user, breadcrumb = 'Dashboard', onMenuClick, menuButton, sidebarOpen, onSearch, onNotificationClick, onLogout, notifications = [], unreadNotifications = 0 }) {
   const [showNotifications, setShowNotifications] = React.useState(false);
   const name = user?.name || 'CUET Student';
   const subtitle = user?.subtitle || 'CUET FitHub member';
@@ -16,7 +16,7 @@ export default function Navbar({ user, breadcrumb = 'Dashboard', onMenuClick, on
   return (
     <header className="topbar">
       <div className="topbar-left">
-        <button aria-label="Open navigation" className="icon-button menu-button" onClick={onMenuClick} type="button">
+        <button ref={menuButton} aria-controls="workspace-sidebar" aria-expanded={sidebarOpen} aria-label="Open navigation" className="icon-button menu-button" onClick={onMenuClick} type="button">
           <Icon name="menu" size={20} />
         </button>
         <div className="breadcrumb">

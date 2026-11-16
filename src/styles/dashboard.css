@@ -397,3 +397,70 @@ textarea.text-input { min-height: 84px; resize: vertical; }
 .ai-chat-panel--page .ai-chat-messages { max-height: 440px; min-height: 360px; }
 .ai-chat-panel--page .ai-chat-body { padding: 21px; }
 @media (max-width: 600px) { .ai-chat-launcher-wrap { bottom: max(16px, env(safe-area-inset-bottom)); right: 16px; }.ai-chat-window { bottom: max(12px, env(safe-area-inset-bottom)); max-height: calc(100dvh - 24px); right: 12px; width: calc(100vw - 24px); }.ai-chat-panel { max-height: calc(100dvh - 24px); }.ai-chat-callout { display: none; }.ai-chat-messages { max-height: 300px; }.ai-chat-panel--page .ai-chat-messages { min-height: 300px; } }
+
+/* Workspace navigation and role colours */
+.fithub-app {
+  --workspace-tint: #e4eafa;
+  --banner-end: #354e80;
+  --track-line: #a7bee1;
+  background: var(--workspace-tint);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.fithub-app[data-role="trainer"] {
+  --workspace-tint: #dfede9;
+  --banner-end: #25615e;
+  --track-line: #a5dacf;
+}
+.fithub-app[data-role="admin"] {
+  --workspace-tint: #eae6f2;
+  --banner-end: #564774;
+  --track-line: #c9b8dc;
+}
+.fithub-app .sidebar { width: min(var(--sidebar-width), 90vw); transition: transform .2s ease; }
+.fithub-app[data-sidebar-open="false"] .sidebar { transform: translateX(-104%); }
+.sidebar-heading { display: flex; align-items: center; justify-content: space-between; gap: 5px; }
+.sidebar-heading .brand-lockup { padding: 0 3px; }
+.sidebar-close {
+  display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0;
+  color: #d5def2; background: #263552; border: 1px solid #485674; border-radius: 8px; cursor: pointer;
+}
+.sidebar-close:hover { background: #384967; }
+.sidebar-scroll {
+  display: flex; flex: 1; min-height: 0; flex-direction: column; overflow-y: auto;
+  overscroll-behavior: contain; scrollbar-color: #647491 transparent; scrollbar-width: thin;
+}
+.sidebar-scroll .sidebar-bottom-card { margin-top: auto; }
+.sidebar-scroll .sidebar-nav:last-of-type { margin-bottom: 22px; }
+.sidebar-resize { position: absolute; inset: 0 -4px 0 auto; width: 10px; cursor: col-resize; touch-action: none; }
+.sidebar-resize::after { content: ''; position: absolute; top: 45%; left: 2px; width: 4px; height: 45px; border-radius: 4px; background: #7486a7; }
+.sidebar-resize:hover::after, .sidebar-resize:focus-visible::after { background: #bacbff; }
+.fithub-app[data-sidebar-open="false"] .menu-button { display: inline-flex; }
+.fithub-app[data-sidebar-open="true"] .menu-button { display: none; }
+@media (min-width: 851px) {
+  .fithub-app { --nav-offset: var(--sidebar-width); }
+  .fithub-app[data-sidebar-open="false"] { --nav-offset: 0px; }
+  .fithub-app .main-content, .fithub-app .site-footer--app { margin-left: var(--nav-offset); }
+  .fithub-app .topbar { left: var(--nav-offset); }
+}
+@media (max-width: 850px) { .sidebar-resize { display: none; } }
+
+.fithub-app .main-content { background: linear-gradient(160deg, var(--workspace-tint), #f3f5f9 85%); }
+.fithub-app :is(.page-head, .welcome-row) {
+  position: relative; isolation: isolate; overflow: hidden; border-radius: 15px;
+  margin: 22px 0 18px; padding: clamp(18px, 2.4vw, 32px);
+  background: linear-gradient(110deg, #192b47, var(--banner-end));
+}
+.fithub-app :is(.page-head, .welcome-row)::after {
+  content: ''; position: absolute; z-index: -1; pointer-events: none;
+  right: -85px; bottom: -120px; width: 280px; height: 200px;
+  border: 1px solid var(--track-line); border-radius: 100px; transform: rotate(-32deg);
+  box-shadow: 0 0 0 8px var(--banner-end), 0 0 0 9px var(--track-line),
+    0 0 0 17px var(--banner-end), 0 0 0 18px var(--track-line); opacity: .32;
+}
+.fithub-app :is(.welcome-row, .page-head) h1 { color: #fff; }
+.fithub-app .welcome-row h1 span { color: #d9e7ff; }
+.fithub-app :is(.welcome-row, .page-head) :is(.eyebrow, .page-sub, .welcome-copy) { color: #d4deed; }
+.fithub-app .panel { border-color: #d7dfeb; box-shadow: 0 3px 12px #1e32500a; }
+.fithub-app .panel-subtitle { color: #617087; }
+.fithub-app .training-tabs { background: #d4ddec; }
+@media (prefers-reduced-motion: reduce) { .fithub-app .sidebar { transition: none; } }

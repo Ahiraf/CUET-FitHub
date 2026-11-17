@@ -168,6 +168,8 @@ namespace CuetFitHub.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("TrainerUserId").HasColumnType("text");
+
                     b.Property<string>("TrainerName")
                         .IsRequired()
                         .HasColumnType("text");

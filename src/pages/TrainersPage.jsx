@@ -16,7 +16,7 @@ export default function TrainersPage() {
 
   const book = async (trainer) => {
     try {
-      await api.createBooking({ trainerName: trainer.name, goal: `Session with ${trainer.name}`, slot: 'To be confirmed' });
+      await api.createBooking({ trainerName: trainer.name, trainerUserId: trainer.trainerUserId, goal: `Session with ${trainer.name}`, slot: 'To be confirmed' });
       setRequested((prev) => new Set(prev).add(trainer.name));
       showToast(`Session request sent to ${trainer.name}.`);
     } catch (e) { showToast(e.message); }

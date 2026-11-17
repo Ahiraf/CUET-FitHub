@@ -36,7 +36,7 @@ export const roleConfig = {
   trainer: {
     subtitle: 'Trainer workspace',
     breadcrumbBase: 'Trainer dashboard',
-    bottomCard: { icon: 'users', title: 'Your athletes', subtitle: '5 members active' },
+    bottomCard: { icon: 'users', title: 'Your athletes', subtitle: 'Confirmed bookings' },
     nav: [
       { label: 'Overview', slug: 'overview', icon: 'grid', component: TrainerOverview },
       { label: 'AI Coach', slug: 'ai-coach', icon: 'sparkles', component: AIChatPage },

@@ -57,19 +57,39 @@ public class BookingsController : ControllerBase
     [HttpGet]
     [Authorize(Roles = $"{Roles.Trainer},{Roles.Admin}")]
     public async Task<ActionResult<IEnumerable<BookingDto>>> All() =>
-        await _db.Bookings.OrderByDescending(b => b.CreatedAt).Select(ToDto).ToListAsync();
+        await VisibleBookings().OrderByDescending(b => b.CreatedAt).Select(ToDto).ToListAsync();
+
+    private IQueryable<Booking> VisibleBookings() => User.IsInRole(Roles.Admin)
+        ? _db.Bookings : _db.Bookings.Where(b => b.TrainerUserId == User.UserId());
+
+    [HttpGet("members")]
+    [Authorize(Roles = Roles.Trainer)]
+    public async Task<IActionResult> Members()
+    {
+        var students = VisibleBookings().Where(b => b.Status == "Confirmed").Select(b => b.UserId);
+        return Ok(await _db.Users.Where(u => students.Contains(u.Id)).OrderBy(u => u.FullName)
+            .Select(u => new { u.Id, Name = u.FullName, u.Email, u.Department }).ToListAsync());
+    }
 
     [HttpPost]
     public async Task<ActionResult<BookingDto>> Create(CreateBookingDto dto)
     {
         var uid = User.UserId();
         var me = await _db.Users.FindAsync(uid);
+        var trainers = _db.Users.Where(u => u.Role == Roles.Trainer);
+        var matches = await (dto.TrainerUserId == null
+            ? trainers.Where(u => u.FullName == dto.TrainerName)
+            : trainers.Where(u => u.Id == dto.TrainerUserId)).Take(2).ToListAsync();
+        if (matches.Count > 1 || (dto.TrainerUserId != null && matches.Count == 0))
+            return BadRequest(new { message = "Please select a trainer from the directory." });
+        var trainer = matches.SingleOrDefault();
         var booking = new Booking
         {
             UserId = uid,
             MemberName = me?.FullName ?? User.DisplayName(),
             Department = me?.Department ?? "CUET",
-            TrainerName = dto.TrainerName,
+            TrainerName = trainer?.FullName ?? dto.TrainerName,
+            TrainerUserId = trainer?.Id,
             Goal = dto.Goal,
             Slot = string.IsNullOrWhiteSpace(dto.Slot) ? "To be confirmed" : dto.Slot,
             Status = "Pending",
@@ -83,7 +103,7 @@ public class BookingsController : ControllerBase
     [Authorize(Roles = $"{Roles.Trainer},{Roles.Admin}")]
     public async Task<ActionResult<BookingDto>> SetStatus(int id, UpdateStatusDto dto)
     {
-        var booking = await _db.Bookings.FindAsync(id);
+        var booking = await VisibleBookings().SingleOrDefaultAsync(b => b.Id == id);
         if (booking is null) return NotFound();
         booking.Status = dto.Status;
         await _db.SaveChangesAsync();

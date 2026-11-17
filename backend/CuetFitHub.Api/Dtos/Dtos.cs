@@ -14,7 +14,7 @@ public record OccupancyDto(int Count, int Capacity, bool Full, bool CheckedIn, i
 public record GymClassDto(int Id, string Slug, string Title, string Type, string Coach, string Day, string Time, int Spots, int Filled, string Color, bool Enrolled);
 
 // ---- Bookings ----
-public record CreateBookingDto(string TrainerName, string Goal, string? Slot);
+public record CreateBookingDto(string TrainerName, string Goal, string? Slot, string? TrainerUserId = null);
 public record BookingDto(int Id, string MemberName, string Department, string TrainerName, string Goal, string Slot, string Status);
 public record UpdateStatusDto(string Status);
 

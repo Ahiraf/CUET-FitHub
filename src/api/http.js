@@ -25,6 +25,7 @@ export const toggleEnroll = (id) => request(`/api/classes/${id}/enroll`, { metho
 // ---- Trainers / bookings ----
 export const getTrainers = () => request('/api/trainers');
 export const getMyBookings = () => request('/api/bookings/mine');
+export const getTrainerMembers = () => request('/api/bookings/members');
 export const getAllBookings = () => request('/api/bookings');
 export const createBooking = (dto) => request('/api/bookings', { method: 'POST', body: dto });
 export const setBookingStatus = (id, status) => request(`/api/bookings/${id}/status`, { method: 'PATCH', body: { status } });

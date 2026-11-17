@@ -30,8 +30,20 @@ public class TrainersController : ControllerBase
     public TrainersController(AppDbContext db) => _db = db;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<TrainerProfile>>> Get() =>
-        await _db.Trainers.OrderByDescending(t => t.Rating).ToListAsync();
+    public async Task<IActionResult> Get()
+    {
+        var profiles = await _db.Trainers.OrderByDescending(t => t.Rating).ToListAsync();
+        var coaches = await _db.Users.Where(u => u.Role == Roles.Trainer)
+            .Select(u => new { u.Id, u.FullName }).ToListAsync();
+        var directory = coaches.Select(coach => {
+            var profile = profiles.FirstOrDefault(p => p.Name == coach.FullName);
+            return new { coach.Id, TrainerUserId = coach.Id, Name = coach.FullName,
+                Specialty = profile?.Specialty ?? "Personal training", Rating = profile?.Rating,
+                Sessions = profile?.Sessions ?? 0, Availability = profile?.Availability ?? "By appointment",
+                Bio = profile?.Bio, Color = profile?.Color ?? "#4f6ae0" };
+        });
+        return Ok(directory.Cast<object>().Concat(profiles.Where(p => !coaches.Any(c => c.FullName == p.Name))));
+    }
 }
 
 [ApiController]

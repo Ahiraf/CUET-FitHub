@@ -52,6 +52,7 @@ public class Booking
     public string UserId { get; set; } = string.Empty;
     public string MemberName { get; set; } = string.Empty;
     public string Department { get; set; } = string.Empty;
+    public string? TrainerUserId { get; set; }
     public string TrainerName { get; set; } = string.Empty;
     public string Goal { get; set; } = string.Empty;
     public string Slot { get; set; } = "To be confirmed";

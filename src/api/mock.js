@@ -115,22 +115,44 @@ export async function toggleEnroll(id) {
 }
 
 // ---- Trainers / bookings ----
-export async function getTrainers() { return trainers; }
+export async function getTrainers() {
+  const coaches = Object.values(loadJSON('accounts', {})).filter(a => a.role === 'trainer');
+  return [...coaches.map(a => ({
+    specialty: 'Personal training', availability: 'By appointment', sessions: 0,
+    ...trainers.find(t => t.name === a.name), id: a.id, trainerUserId: a.id, name: a.name,
+  })), ...trainers.filter(t => !coaches.some(a => a.name === t.name))];
+}
 export async function getMyBookings() { return loadJSON(uk('myBookings'), []); }
-export async function getAllBookings() { return loadJSON('bookingRequests', []); }
-export async function createBooking({ trainerName, goal, slot }) {
+export async function getAllBookings() {
+  const rows = loadJSON('bookingRequests', []);
+  if (me()?.role === 'admin') return rows;
+  return rows.filter(b => b.trainerUserId ? b.trainerUserId === me()?.id : b.trainerName === me()?.name);
+}
+export async function getTrainerMembers() {
+  const confirmed = (await getAllBookings()).filter(b => b.status === 'Confirmed');
+  return Object.values(loadJSON('accounts', {})).filter(a => {
+    const previous = loadJSON(a.email.toLowerCase() + ':myBookings', []);
+    return confirmed.some(b => b.userId === a.id || (!b.userId && previous.some(old => old.id === b.id)));
+  }).map(stripPw);
+}
+export async function createBooking({ trainerName, trainerUserId, goal, slot }) {
   const u = me();
-  const booking = { id: uid('br'), memberName: u?.name || 'A student', department: u?.department || 'CUET', trainerName, goal, slot: slot || 'To be confirmed', status: 'Pending' };
+  const booking = { id: uid('br'), userId: u.id, memberName: u.name, department: u.department || 'CUET', trainerName, trainerUserId, goal, slot: slot || 'To be confirmed', status: 'Pending' };
   saveJSON(uk('myBookings'), [booking, ...loadJSON(uk('myBookings'), [])]);
   saveJSON('bookingRequests', [booking, ...loadJSON('bookingRequests', [])]);
   return booking;
 }
 export async function setBookingStatus(id, status) {
-  const upd = (list) => list.map((b) => (b.id === id ? { ...b, status } : b));
-  const all = upd(loadJSON('bookingRequests', []));
-  saveJSON('bookingRequests', all);
-  saveJSON(uk('myBookings'), upd(loadJSON(uk('myBookings'), [])));
-  return all.find((b) => b.id === id);
+  const booking = (await getAllBookings()).find(b => b.id === id);
+  if (!booking) throw new Error('Booking not found.');
+  const upd = list => list.map(b => b.id === id ? { ...b, status } : b);
+  saveJSON('bookingRequests', upd(loadJSON('bookingRequests', [])));
+  for (const a of Object.values(loadJSON('accounts', {}))) {
+    const key = a.email.toLowerCase() + ':myBookings';
+    const rows = loadJSON(key, []);
+    if (rows.some(b => b.id === id)) saveJSON(key, upd(rows));
+  }
+  return { ...booking, status };
 }
 
 // ---- Routines ----

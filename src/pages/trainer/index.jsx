@@ -7,13 +7,19 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useApi } from '../../hooks/useApi';
 import api from '../../api';
-import { trainerMembers, gymClasses, exerciseLibrary, sampleRoutine } from '../../data';
+import { gymClasses, exerciseLibrary, sampleRoutine } from '../../data';
 
-const statusTone = { 'On track': 'green', 'Needs nudge': 'orange', 'At risk': 'red' };
+function MemberRows({ members }) {
+  return members.map(m => <div className="list-row" key={m.id}>
+    <span className="row-icon">{initials(m.name)}</span>
+    <div className="row-main"><strong>{m.name}</strong><span>{[m.department, m.email].filter(Boolean).join(' · ')}</span></div>
+    <span className="tag green">Confirmed</span>
+  </div>);
+}
 
 export function TrainerOverview() {
   const { user } = useAuth();
-  const showToast = useToast();
+  const { data: members } = useApi(api.getTrainerMembers, []);
   const navigate = useNavigate();
   const { data: bookings } = useApi(() => api.getAllBookings(), []);
   const pending = (bookings || []).filter((b) => b.status === 'Pending');
@@ -32,7 +38,7 @@ export function TrainerOverview() {
       </section>
 
       <section className="grid-4">
-        <StatCard accent="blue" detail="Following your plans" icon="users" label="Active members" value={String(trainerMembers.length)} />
+        <StatCard accent="blue" detail="With confirmed bookings" icon="users" label="Active members" value={members ? String(members.length) : '…'} />
         <StatCard accent="orange" detail="Across the week" icon="calendar" label="Classes led" value="4" />
         <StatCard accent="violet" detail="1-on-1 sessions" icon="clock" label="Sessions this week" value="12" />
         <StatCard accent="green" detail="Across all members" icon="target" label="Avg. adherence" value="68%" />
@@ -41,18 +47,12 @@ export function TrainerOverview() {
       <section className="content-grid">
         <article className="panel">
           <div className="panel-header">
-            <div><h2 className="panel-title">Members needing attention</h2><p className="panel-subtitle">Lowest adherence this week</p></div>
+            <div><h2 className="panel-title">Your members</h2><p className="panel-subtitle">Students with confirmed bookings</p></div>
             <button className="panel-link" onClick={() => navigate('/dashboard/members')} type="button">All members <Icon name="arrowRight" size={13} /></button>
           </div>
           <div className="list" style={{ marginTop: 14 }}>
-            {[...trainerMembers].sort((a, b) => a.adherence - b.adherence).slice(0, 3).map((m) => (
-              <div className="list-row" key={m.name}>
-                <span className="row-icon">{initials(m.name)}</span>
-                <div className="row-main"><strong>{m.name}</strong><span>{m.dept} · {m.plan}</span></div>
-                <span className={`tag ${statusTone[m.status]}`}>{m.status}</span>
-                <button className="btn sm ghost" onClick={() => showToast(`Message sent to ${m.name}.`)} type="button">Nudge</button>
-              </div>
-            ))}
+            <MemberRows members={(members || []).slice(0, 3)} />
+            {members?.length === 0 && <p>No confirmed bookings yet.</p>}
           </div>
         </article>
 
@@ -78,27 +78,19 @@ export function TrainerOverview() {
 }
 
 export function Members() {
-  const showToast = useToast();
+  const { data: members, error, loading } = useApi(api.getTrainerMembers, []);
   return (
     <div className="dashboard-container">
       <header className="page-head">
         <p className="eyebrow">Your athletes</p>
         <h1>Members</h1>
-        <p className="page-sub">Students following your routines. Keep an eye on adherence and nudge anyone falling behind.</p>
+        <p className="page-sub">Students with a confirmed booking appear here.</p>
       </header>
       <div className="list">
-        {trainerMembers.map((m) => (
-          <div className="list-row" key={m.name}>
-            <span className="row-icon">{initials(m.name)}</span>
-            <div className="row-main"><strong>{m.name}</strong><span>{m.dept} · {m.plan}</span></div>
-            <div style={{ width: 150 }}>
-              <div className="progress-track"><div className={`progress-fill ${m.adherence >= 70 ? 'green' : m.adherence >= 50 ? 'orange' : 'red'}`} style={{ width: `${m.adherence}%` }} /></div>
-              <div style={{ color: '#93a0b6', fontSize: 9, marginTop: 5 }}>{m.adherence}% adherence</div>
-            </div>
-            <span className={`tag ${statusTone[m.status]}`}>{m.status}</span>
-            <button className="btn sm ghost" onClick={() => showToast(`Message sent to ${m.name}.`)} type="button">Nudge</button>
-          </div>
-        ))}
+        {loading && <p role="status">Loading members…</p>}
+        {error && <p role="alert">{error}</p>}
+        {members?.length === 0 && <p className="empty-state">No confirmed bookings yet.</p>}
+        <MemberRows members={members || []} />
       </div>
     </div>
   );
@@ -108,7 +100,9 @@ export function Routines() {
   const { user } = useAuth();
   const showToast = useToast();
   const [routine, setRoutine] = useState(sampleRoutine);
-  const [assignee, setAssignee] = useState(trainerMembers[0]);
+  const { data: members } = useApi(api.getTrainerMembers, []);
+  const [selectedId, setSelectedId] = useState('');
+  const assignee = members?.find(m => m.id === selectedId) || members?.[0];
 
   const remove = (name) => setRoutine(routine.filter((r) => r.name !== name));
   const add = (name) => {
@@ -148,11 +142,11 @@ export function Routines() {
           <div className="form-grid" style={{ gridTemplateColumns: '1fr auto', alignItems: 'end', marginTop: 18 }}>
             <div className="field">
               <label htmlFor="assignee">Assign to</label>
-              <select id="assignee" className="select" value={assignee.email} onChange={(e) => setAssignee(trainerMembers.find((m) => m.email === e.target.value))}>
-                {trainerMembers.map((m) => <option key={m.email} value={m.email}>{m.name}</option>)}
+              <select id="assignee" className="select" value={assignee?.id || ''} onChange={e => setSelectedId(e.target.value)}>
+                {(members || []).map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
             </div>
-            <button className="btn" disabled={routine.length === 0} onClick={assign} type="button"><Icon name="check" size={14} /> Assign routine</button>
+            <button className="btn" disabled={!assignee || routine.length === 0} onClick={assign} type="button"><Icon name="check" size={14} /> Assign routine</button>
           </div>
         </article>
 

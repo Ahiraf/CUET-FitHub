@@ -10,6 +10,26 @@ export function initials(name = '') {
 
 export default function Navbar({ user, breadcrumb = 'Dashboard', onMenuClick, menuButton, sidebarOpen, onSearch, onNotificationClick, onLogout, notifications = [], unreadNotifications = 0 }) {
   const [showNotifications, setShowNotifications] = React.useState(false);
+  const popover = React.useRef(null);
+  const bell = React.useRef(null);
+  React.useEffect(() => {
+    if (!showNotifications) return;
+    const dismiss = event => {
+      if (!popover.current?.contains(event.target)) setShowNotifications(false);
+    };
+    const escape = event => {
+      if (event.key === 'Escape') {
+        setShowNotifications(false);
+        bell.current?.focus();
+      }
+    };
+    document.addEventListener('pointerdown', dismiss);
+    document.addEventListener('keydown', escape);
+    return () => {
+      document.removeEventListener('pointerdown', dismiss);
+      document.removeEventListener('keydown', escape);
+    };
+  }, [showNotifications]);
   const name = user?.name || 'CUET Student';
   const subtitle = user?.subtitle || 'CUET FitHub member';
 
@@ -30,16 +50,16 @@ export default function Navbar({ user, breadcrumb = 'Dashboard', onMenuClick, me
         <button aria-label="Search" className="icon-button" onClick={onSearch} type="button">
           <Icon name="search" size={20} />
         </button>
-        <div className="notification-wrap">
-        <button aria-label="Notifications" className="icon-button notification-button" onClick={() => { setShowNotifications((open) => !open); onNotificationClick?.(); }} type="button">
+        <div className="notification-wrap" ref={popover}>
+        <button ref={bell} aria-expanded={showNotifications} aria-controls="notification-feed" aria-label="Notifications" className="icon-button notification-button" onClick={() => { setShowNotifications((open) => !open); if (!showNotifications) onNotificationClick?.(); }} type="button">
           <Icon name="bell" size={20} />
           {unreadNotifications > 0 && <span className="notification-dot" />}
         </button>
-        {showNotifications && <div className="notification-popover">
-          <div className="notification-popover-head"><strong>Notifications</strong>{unreadNotifications > 0 && <span>{unreadNotifications} new</span>}</div>
+        {showNotifications && <section id="notification-feed" aria-label="Notifications" className="notification-popover">
+          <div className="notification-popover-head"><strong><Icon name="bell" size={19} /> Notifications</strong>{unreadNotifications > 0 && <span>{unreadNotifications} new</span>}</div>
           {notifications.length === 0 && <p className="notification-empty">Nothing new yet.</p>}
-          {notifications.slice(0, 6).map((item) => <div className={`notification-item ${item.read ? '' : 'unread'}`} key={item.id}><i /><div><strong>{item.title}</strong><p>{item.body}</p></div></div>)}
-        </div>}
+          {notifications.map((item) => <div className={`notification-item ${item.read ? '' : 'unread'}`} key={item.id}><span className={`notification-icon ${item.type === 'maintenance' ? 'maintenance' : ''}`}><Icon name={item.type === 'maintenance' ? 'wrench' : 'megaphone'} size={18} /></span><div><strong>{item.title}</strong><p>{item.body}</p></div></div>)}
+        </section>}
         </div>
         <div className="profile-menu">
           <div className="avatar avatar-small">{initials(name)}</div>

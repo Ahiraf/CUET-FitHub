@@ -95,7 +95,7 @@ export default function Register() {
 
         <aside className="auth-showcase">
           <div className="brand">
-            <div className="brand-mark">CF</div>
+            <img className="brand-mark" src="/favicon.png" alt="" />
 
             <div className="brand-copy">
               <strong>CUET FitHub</strong>

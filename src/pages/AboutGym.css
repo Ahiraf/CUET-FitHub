@@ -1,0 +1,40 @@
+.gym-tour {
+  background: #111c30;
+  color: #ecf0f6;
+  font-family: system-ui, sans-serif;
+  padding: 22px max(20px, calc((100vw - 1120px) / 2)) 64px;
+}
+.gym-tour a { color: #f5cf84; text-underline-offset: 4px; }
+.gym-tour nav { margin-bottom: 20px; }
+.gym-tour figure { margin: 0; }
+.gym-tour img { display: block; width: 100%; object-fit: cover; }
+.gym-tour-hero { position: relative; isolation: isolate; overflow: hidden; border-radius: 15px; }
+.gym-tour-hero img { height: clamp(290px, 40vw, 490px); object-position: center 53%; }
+.gym-tour-hero > div {
+  position: absolute; inset: auto 0 0; padding: 45px clamp(18px, 4vw, 48px) 22px;
+  background: linear-gradient(transparent, #09101add 60%, #09101a);
+}
+.gym-tour h1, .gym-tour h2 { margin: 0; font-family: Georgia, serif; line-height: 1.1; }
+.gym-tour h1 { font-size: clamp(34px, 5vw, 68px); }
+.gym-tour-hero p { margin: 6px 0; color: #f5cf84; }
+.gym-tour h2 { font-size: clamp(28px, 3vw, 42px); }
+.gym-tour-visit {
+  display: grid; grid-template-columns: 1.3fr 1fr; align-items: center; gap: clamp(25px, 6vw, 86px);
+  padding-block: clamp(32px, 5vw, 65px); border-bottom: 1px solid #425069;
+}
+.gym-tour-visit p { color: #cbd6e6; line-height: 1.7; }
+.gym-tour-visit img { aspect-ratio: 1.65; object-position: center 44%; border-radius: 8px; }
+.gym-tour figcaption { margin-top: 8px; }
+.gym-tour-visit figcaption { color: #b4c2d7; font-size: .85rem; }
+.gym-tour-equipment h2 { margin: 36px 0 22px; }
+.gym-tour-gallery { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 24px 16px; }
+.gym-tour-gallery figure { grid-column: span 2; }
+.gym-tour-gallery img { aspect-ratio: 4/3; border-radius: 8px; }
+.gym-tour-gallery figure:nth-child(n+4) { grid-column: auto; }
+.gym-tour-gallery figure:nth-child(n+4) img { width: min(100%, 141px); aspect-ratio: 1; }
+@media (max-width: 680px) {
+  .gym-tour-visit { grid-template-columns: 1fr; }
+  .gym-tour-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gym-tour-gallery figure { grid-column: auto; }
+  .gym-tour-gallery figure:first-child { grid-column: 1 / -1; }
+}

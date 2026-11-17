@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Auth.css';
 import { useAuth } from './context/AuthContext';
 
-export default function Login() {
+export default function Login({ trainer = false }) {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -32,31 +32,29 @@ export default function Login() {
       <section className="auth-shell">
         <aside className="auth-showcase">
           <div className="brand">
-            <div className="brand-mark">CF</div>
+            <img className="brand-mark" src="/favicon.png" alt="" />
             <div className="brand-copy"><strong>CUET FitHub</strong><span>Train. Track. Thrive.</span></div>
           </div>
           <div className="showcase-copy">
-            <span className="showcase-tag">STUDENT FITNESS PLATFORM</span>
-            <h1>Make every workout <span>count.</span></h1>
-            <p>Track your progress, book classes, and stay connected with the CUET fitness community.</p>
+            <span className="showcase-tag">{trainer ? 'TRAINER PORTAL' : 'STUDENT FITNESS PLATFORM'}</span>
+            <h1>{trainer ? <>Help every member <span>thrive.</span></> : <>Make every workout <span>count.</span></>}</h1>
+            <p>{trainer ? 'Coach members, manage classes, and support the CUET fitness community.' : 'Track your progress, book classes, and stay connected with the CUET fitness community.'}</p>
           </div>
           <div className="showcase-stats">
-            <div><strong>500+</strong><span>Active students</span></div>
-            <div><strong>24/7</strong><span>Progress tracking</span></div>
-            <div><strong>1 goal</strong><span>A stronger you</span></div>
+            {trainer ? <><div><strong>Coach</strong><span>Support members</span></div><div><strong>Plan</strong><span>Manage routines</span></div><div><strong>Lead</strong><span>Run classes</span></div></> : <><div><strong>500+</strong><span>Active students</span></div><div><strong>24/7</strong><span>Progress tracking</span></div><div><strong>1 goal</strong><span>A stronger you</span></div></>}
           </div>
         </aside>
 
         <section className="auth-panel">
           <div className="auth-form-wrap">
             <p className="auth-kicker">WELCOME BACK</p>
-            <h2 className="auth-title">Log in to FitHub</h2>
-            <p className="auth-subtitle">Continue building your strongest routine.</p>
+            <h2 className="auth-title">{trainer ? 'Trainer login' : 'Log in to FitHub'}</h2>
+            <p className="auth-subtitle">{trainer ? 'Sign in to your trainer dashboard.' : 'Continue building your strongest routine.'}</p>
 
             <form className="auth-form" onSubmit={handleSubmit}>
               <label className="auth-label">
-                CUET email address
-                <input className="auth-input" type="email" placeholder="u&lt;studentID&gt;@student.cuet.ac.bd" value={email} onChange={(e) => setEmail(e.target.value)} />
+                {trainer ? 'Email address' : 'CUET email address'}
+                <input className="auth-input" type="email" placeholder={trainer ? 'Enter your trainer email' : 'u<studentID>@student.cuet.ac.bd'} value={email} onChange={(e) => setEmail(e.target.value)} />
               </label>
 
               <label className="auth-label">
@@ -72,11 +70,9 @@ export default function Login() {
               <button className="auth-submit" type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Log in to dashboard →'}</button>
             </form>
 
-            <p className="auth-switch">
-              New to FitHub?{' '}
-              <button className="text-button" type="button" onClick={() => navigate('/register')}>Create an account</button>
-            </p>
-            <p className="auth-switch">Want to coach at CUET? <button className="text-button" type="button" onClick={() => navigate('/join-trainer')}>Apply as a trainer</button></p>
+            {!trainer && <p className="auth-switch">New to FitHub? <button className="text-button" type="button" onClick={() => navigate('/register')}>Create an account</button></p>}
+            <p className="auth-switch">{trainer ? 'Want to coach at CUET?' : 'Are you a trainer?'} <button className="text-button" type="button" onClick={() => navigate(trainer ? '/join-trainer' : '/trainer-login')}>{trainer ? 'Apply as a trainer' : 'Trainer login'}</button></p>
+            {trainer && <p className="auth-switch">Are you a student? <button className="text-button" type="button" onClick={() => navigate('/login')}>Student login</button></p>}
             <button className="back-home" type="button" onClick={() => navigate('/')}>← Back to home</button>
           </div>
         </section>

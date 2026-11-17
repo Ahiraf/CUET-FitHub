@@ -23,6 +23,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<RootRoute />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/trainer-login" element={<Login trainer />} />
             <Route path="/about" element={<AboutGym />} />
             <Route path="/announcements" element={<CommunityNotices />} />
             <Route path="/register" element={<Register />} />

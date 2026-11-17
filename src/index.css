@@ -322,11 +322,39 @@ body {
   .landing-page .landing-nav .landing-nav-actions { gap: 4px; }
   .landing-page .landing-nav .landing-nav-actions button { font-size: 16px; padding-inline: 6px; }
 }
-.gym-info { min-height: 100vh; background: #111a31; color: #edf1ff; padding: clamp(24px, 7vw, 90px); font-family: system-ui, sans-serif; }
-.gym-info > * { max-width: 65ch; }
-.gym-info a { color: #cfdaff; }
-.gym-info article { padding-block: 1em; border-top: 1px solid #39445b; }
-.gym-info p { line-height: 1.6; }
+.gym-info {
+  min-height: 100vh;
+  padding: clamp(20px, 4vw, 52px) max(20px, calc((100% - 1040px) / 2)) 64px;
+  background: radial-gradient(ellipse at top, #263650, #111a31 65%);
+  color: #eaf0fb;
+  font-family: system-ui, sans-serif;
+}
+.gym-info a { color: #f3d596; text-underline-offset: 4px; }
+.gym-info h1 {
+  margin: clamp(28px, 5vw, 64px) auto;
+  color: #f5d189;
+  font: bold clamp(38px, 5.2vw, 74px)/1.08 Georgia, serif;
+  text-align: center;
+  text-wrap: balance;
+}
+.gym-info article {
+  padding: clamp(20px, 3vw, 36px);
+  background: #19263e;
+  border-inline-start: 4px solid #d7ac61;
+  border-radius: 0 12px 12px 0;
+  margin-bottom: 18px;
+  overflow-wrap: anywhere;
+}
+.gym-info article small { color: #efd39a; font-size: 1rem; }
+.gym-info article h2 {
+  margin: 10px 0;
+  color: #fff0ce;
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 800;
+  line-height: 1.16;
+}
+.gym-info p { font-size: clamp(17px, 1.5vw, 20px); line-height: 1.6; }
+.gym-info article p { max-width: 72ch; margin: 0; }
 @media (min-width: 721px) and (max-width: 1000px) {
   .landing-nav .landing-links { gap: 12px; }
   .landing-nav .landing-nav-actions { gap: 4px; }

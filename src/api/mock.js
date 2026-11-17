@@ -13,7 +13,7 @@ const email = () => (me()?.email || 'guest').toLowerCase();
 const uk = (name) => `${email()}:${name}`;
 const today = () => new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 const uid = (p) => `${p}-${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`;
-const stripPw = ({ password, ...rest }) => rest;
+const stripPw = ({ password, credential, ...rest }) => rest;
 
 function seed() {
   if (loadJSON('seeded_v2', false)) return;
@@ -32,6 +32,7 @@ if (!USE_HTTP) seed();
 
 // ---- Auth ----
 export async function register({ fullName, studentId, email: mail, password, role }) {
+  if (role === 'trainer') throw new Error('Apply through the trainer application form.');
   seed();
   const accounts = loadJSON('accounts', {});
   const key = mail.toLowerCase();
@@ -45,6 +46,8 @@ export async function login({ email: mail, password }) {
   seed();
   const acc = loadJSON('accounts', {})[mail.toLowerCase()];
   if (!acc || (acc.password && acc.password !== password)) throw new Error('Invalid email or password.');
+  if (acc.credential && await trainerHash(password, acc.credential.salt) !== acc.credential.hash)
+    throw new Error('Invalid email or password.');
   return { token: `mock.${acc.id}`, user: stripPw(acc) };
 }
 export async function getMe() {
@@ -170,16 +173,43 @@ export async function setTicketStatus(id, status) {
 }
 
 // ---- Trainer applications ----
-export async function submitTrainerApplication(input) {
-  const application = { id: uid('ta'), ...input, status: 'Pending', date: today() };
-  saveJSON('trainerApplications', [application, ...loadJSON('trainerApplications', [])]);
+async function trainerHash(password, salt) {
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256',
+    iterations: 100000, salt: Uint8Array.from(salt) }, key, 256);
+  return btoa(String.fromCharCode(...new Uint8Array(bits)));
+}
+
+export async function submitTrainerApplication({ password, ...input }) {
+  if (!password || password.length < 6 || !/[a-z]/.test(password))
+    throw new Error('Use at least 6 characters, including a lowercase letter.');
+  const email = input.email.trim().toLowerCase();
+  const salt = [...crypto.getRandomValues(new Uint8Array(16))];
+  const hash = await trainerHash(password, salt);
+  const applications = loadJSON('trainerApplications', []);
+  if (loadJSON('accounts', {})[email]) throw new Error('An account with this email already exists.');
+  if (applications.some(item => item.email.toLowerCase() === email && item.status === 'Pending' && item.credential))
+    throw new Error('An application for this email is awaiting review.');
+  const application = { ...input, email, id: uid('ta'), status: 'Pending', date: today() };
+  saveJSON('trainerApplications', [{ ...application, credential: { salt, hash } }, ...applications]);
   return application;
 }
-export async function getTrainerApplications() { return loadJSON('trainerApplications', []); }
+export async function getTrainerApplications() { return loadJSON('trainerApplications', []).map(stripPw); }
 export async function setTrainerApplicationStatus(id, status) {
-  const next = loadJSON('trainerApplications', []).map((item) => (item.id === id ? { ...item, status } : item));
-  saveJSON('trainerApplications', next);
-  return next.find((item) => item.id === id);
+  const applications = loadJSON('trainerApplications', []);
+  const application = applications.find(item => item.id === id);
+  if (!application || application.status !== 'Pending') throw new Error('Application is no longer pending.');
+  if (status === 'Approved' && application.credential) {
+    const accounts = loadJSON('accounts', {});
+    const key = application.email.toLowerCase();
+    if (accounts[key]) throw new Error('An account with this email already exists.');
+    accounts[key] = { id: key, email: key, name: application.name, role: 'trainer',
+      verified: true, credential: application.credential };
+    saveJSON('accounts', accounts);
+  }
+  const reviewed = { ...stripPw(application), status };
+  saveJSON('trainerApplications', applications.map(item => item.id === id ? reviewed : item));
+  return reviewed;
 }
 
 // ---- Announcements ----

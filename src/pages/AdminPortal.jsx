@@ -5,7 +5,7 @@ import DashboardLayout from '../dashboards/DashboardLayout';
 import './Portal.css';
 
 function AdminLogin() {
-  const { signIn, logout } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -17,8 +17,7 @@ function AdminLogin() {
     setError('');
     setBusy(true);
     try {
-      const user = await signIn({ email: email.trim(), password });
-      if (user.role !== 'admin') { logout(); throw new Error('This portal is only for CUET FitHub administrators.'); }
+      await signIn({ email: email.trim(), password }, 'admin');
       navigate('/admin/overview');
     } catch (err) { setError(err.message || 'Could not sign in.'); }
     finally { setBusy(false); }

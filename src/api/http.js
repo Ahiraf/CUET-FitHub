@@ -4,6 +4,7 @@ import { request } from './client';
 // ---- Auth ----
 export const register = (dto) => request('/api/auth/register', { method: 'POST', body: dto });
 export const login = (dto) => request('/api/auth/login', { method: 'POST', body: dto });
+export const adminLogin = (dto) => request('/api/auth/admin/login', { method: 'POST', body: dto });
 export const getMe = () => request('/api/auth/me');
 export const updateMe = (dto) => request('/api/auth/me', { method: 'PUT', body: dto });
 

@@ -42,12 +42,17 @@ export async function register({ fullName, studentId, email: mail, password, rol
   saveJSON('accounts', accounts);
   return { token: `mock.${key}`, user };
 }
-export async function login({ email: mail, password }) {
+export const login = dto => authenticate(dto, false);
+export const adminLogin = dto => authenticate(dto, true);
+
+async function authenticate({ email: mail, password }, adminPortal) {
   seed();
   const acc = loadJSON('accounts', {})[mail.toLowerCase()];
   if (!acc || (acc.password && acc.password !== password)) throw new Error('Invalid email or password.');
   if (acc.credential && await trainerHash(password, acc.credential.salt) !== acc.credential.hash)
     throw new Error('Invalid email or password.');
+  if ((acc.role.toLowerCase() === 'admin') !== adminPortal)
+    throw new Error(adminPortal ? 'This portal is for administrators only.' : 'Administrators must sign in through /admin.');
   return { token: `mock.${acc.id}`, user: stripPw(acc) };
 }
 export async function getMe() {

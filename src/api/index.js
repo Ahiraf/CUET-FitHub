@@ -16,6 +16,9 @@ const api = {
   ...impl,
   register: (dto) => impl.register(dto).then(normAuth),
   login: (dto) => impl.login(dto).then(normAuth),
+  adminLogin: (dto) => impl.adminLogin(dto).then(normAuth),
+  getMembers: () => impl.getMembers().then(members => members.map(normUser)),
+  verifyMember: (id, verified) => impl.verifyMember(id, verified).then(normUser),
   getMe: () => impl.getMe().then(normUser),
   updateMe: (dto) => impl.updateMe(dto).then(normUser),
 };

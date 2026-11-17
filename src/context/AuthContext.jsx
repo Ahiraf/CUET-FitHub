@@ -9,8 +9,11 @@ export function AuthProvider({ children }) {
 
   const value = useMemo(() => ({
     user,
-    signIn: async (credentials) => {
-      const result = await api.login(credentials);
+    signIn: async (credentials, portal) => {
+      const adminPortal = portal === 'admin';
+      const result = await (adminPortal ? api.adminLogin(credentials) : api.login(credentials));
+      if ((result.user.role === 'admin') !== adminPortal)
+        throw new Error(adminPortal ? 'This portal is for administrators only.' : 'Administrators must sign in through /admin.');
       setStoredSession(result);
       setSession(result);
       return result.user;

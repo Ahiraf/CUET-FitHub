@@ -55,6 +55,7 @@ export default function DashboardLayout({ portal = 'dashboard' }) {
   // Not signed in → bounce to login.
   if (!user) return <Navigate to="/login" replace />;
   if (portal === 'admin' && user.role !== 'admin') return <Navigate to="/admin" replace />;
+  if (portal !== 'admin' && user.role === 'admin') return <Navigate to="/admin/overview" replace />;
   const config = getRoleConfig(user.role);
   const allItems = [...config.nav, ...config.support];
 
@@ -77,7 +78,7 @@ export default function DashboardLayout({ portal = 'dashboard' }) {
       <Navbar
         user={navUser}
         breadcrumb={active.slug === 'overview' ? config.breadcrumbBase : active.label}
-        onLogout={() => { logout(); navigate('/login'); }}
+        onLogout={() => { logout(); navigate(portal === 'admin' ? '/admin' : '/login'); }}
         menuButton={menuButton}
         sidebarOpen={sidebarOpen}
         onMenuClick={() => setSidebarOpen(true)}

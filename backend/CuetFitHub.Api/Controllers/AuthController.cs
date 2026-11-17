@@ -53,11 +53,20 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
+    public Task<ActionResult<AuthResponseDto>> Login(LoginDto dto) => Authenticate(dto, false);
+
+    [HttpPost("admin/login")]
+    public Task<ActionResult<AuthResponseDto>> AdminLogin(LoginDto dto) => Authenticate(dto, true);
+
+    private async Task<ActionResult<AuthResponseDto>> Authenticate(LoginDto dto, bool adminPortal)
     {
         var user = await _users.FindByEmailAsync(dto.Email);
         if (user is null || !await _users.CheckPasswordAsync(user, dto.Password))
             return Unauthorized(new { message = "Invalid email or password." });
+
+        if ((user.Role == Roles.Admin) != adminPortal)
+            return StatusCode(403, new { message = adminPortal
+                ? "This portal is for administrators only." : "Administrators must sign in through /admin." });
 
         return Ok(new AuthResponseDto(_tokens.CreateToken(user, user.Role), ToDto(user)));
     }

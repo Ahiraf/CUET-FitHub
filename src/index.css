@@ -296,26 +296,20 @@ body {
 .landing-page .landing-nav-actions button, .landing-page .landing-hero-actions button { font-size: 14px; font-weight: 600; }
 .landing-links { margin-left: 0; }
 @media (min-width: 721px) {
-  .landing-nav { justify-content: flex-end; gap: clamp(16px, 2vw, 28px); }
-  .landing-nav .landing-brand { margin-right: auto; }
-  .landing-nav .landing-links { gap: clamp(14px, 1.8vw, 24px); }
-  .landing-nav .landing-nav-actions {
-    padding-left: 12px;
-    border-left: 1px solid rgba(190,204,255,.18);
-    gap: 8px;
-  }
+  .landing-nav { display: grid; grid-template-columns: auto repeat(4, auto); align-items: center; justify-content: space-between; }
+  .landing-nav .landing-links, .landing-nav .landing-nav-actions { display: contents; }
 }
 .landing-links span, .landing-live-pill, .landing-live-pill strong, .landing-hero-proof { font-size: 12px; }
 .landing-brand small, .landing-mini-footer { font-size: 11px; }
 .landing-brand strong { font-size: 17px; }
 .landing-nav .landing-links a {
   text-decoration: none;
-  font-size: clamp(14px, 1.18vw, 17px);
+  font-size: clamp(18px, 1.65vw, 24px);
   font-weight: 700;
   color: #b6c4e1;
 }
 .landing-page .landing-nav .landing-nav-actions button {
-  font-size: clamp(16px, 1.45vw, 20px);
+  font-size: clamp(18px, 1.65vw, 24px);
   font-weight: 800;
   min-height: 44px;
   padding-inline: clamp(12px, 1.4vw, 22px);
@@ -326,7 +320,7 @@ body {
   .landing-nav .landing-login { display: inline-block; }
   .landing-page .landing-hero { height: calc(100% - 92px); }
   .landing-page .landing-nav .landing-nav-actions { gap: 4px; }
-  .landing-page .landing-nav .landing-nav-actions button { font-size: 14px; padding-inline: 6px; }
+  .landing-page .landing-nav .landing-nav-actions button { font-size: 16px; padding-inline: 6px; }
 }
 .gym-info { min-height: 100vh; background: #111a31; color: #edf1ff; padding: clamp(24px, 7vw, 90px); font-family: system-ui, sans-serif; }
 .gym-info > * { max-width: 65ch; }

@@ -40,7 +40,11 @@ export function AboutGym() {
       <figure><img src="/gym/central-field.jpg" alt="View of the gymnasium across the grass at dusk" /><figcaption>The gymnasium at dusk</figcaption></figure>
     </section>
     <section className="gym-tour-equipment">
-      <h2>Inside the gym</h2>
+      <h2>Around the gym</h2>
+      <div className="gym-tour-views">
+        <figure><img src="/gym/daytime-facade.jpg" alt="Daylight across the glass facade and brick entrance of CUET Gymnasium" loading="lazy" /><figcaption>Across the field <small>Photo by Shakil Ahmad Iqbal</small></figcaption></figure>
+        <figure><img src="/gym/indoor-hall.jpg" alt="Students training beside the open mat area inside the gymnasium" loading="lazy" /><figcaption>The training hall <small>Photo by Lin Den</small></figcaption></figure>
+      </div>
       <div className="gym-tour-gallery">{equipmentPhotos.map(([file, label, alt]) =>
         <figure key={file}><img src={`/gym/${file}.jpg`} alt={alt} loading="lazy" /><figcaption>{label}</figcaption></figure>
       )}</div>

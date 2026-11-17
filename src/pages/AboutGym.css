@@ -1,6 +1,7 @@
 .gym-tour {
   background: #111c30;
   color: #ecf0f6;
+  font-size: clamp(18px, 1.6vw, 22px);
   font-family: system-ui, sans-serif;
   padding: 22px max(20px, calc((100vw - 1120px) / 2)) 64px;
 }
@@ -25,7 +26,7 @@
 .gym-tour-visit p { color: #cbd6e6; line-height: 1.7; }
 .gym-tour-visit img { aspect-ratio: 1.65; object-position: center 44%; border-radius: 8px; }
 .gym-tour figcaption { margin-top: 8px; }
-.gym-tour-visit figcaption { color: #b4c2d7; font-size: .85rem; }
+.gym-tour-visit figcaption { color: #b4c2d7; font-size: 1.1rem; }
 .gym-tour-equipment h2 { margin: 36px 0 22px; }
 .gym-tour-gallery { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 24px 16px; }
 .gym-tour-gallery figure { grid-column: span 2; }
@@ -37,4 +38,14 @@
   .gym-tour-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .gym-tour-gallery figure { grid-column: auto; }
   .gym-tour-gallery figure:first-child { grid-column: 1 / -1; }
+}
+
+.gym-tour-views {
+  display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px;
+  margin: 0 0 36px;
+}
+.gym-tour-views img { height: clamp(220px, 29vw, 380px); border-radius: 8px; }
+.gym-tour-views small { display: block; color: #bac7db; font-size: 1rem; margin-top: 3px; }
+@media (max-width: 680px) {
+  .gym-tour-views { grid-template-columns: 1fr; }
 }
